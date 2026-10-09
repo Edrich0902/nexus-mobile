@@ -94,8 +94,8 @@ ThemeData buildNexusTheme(Ambient ambient) {
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: _OpaquePages(CupertinoPageTransitionsBuilder()),
+        TargetPlatform.android: _OpaquePages(FadeForwardsPageTransitionsBuilder()),
       },
     ),
     appBarTheme: AppBarTheme(
@@ -104,5 +104,38 @@ ThemeData buildNexusTheme(Ambient ambient) {
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
     ),
+  );
+}
+
+/// Platform page transitions over an opaque page. Shell pages draw no
+/// background of their own, so without one the outgoing page shows through
+/// the incoming one for the whole slide.
+class _OpaquePages extends PageTransitionsBuilder {
+  const _OpaquePages(this.inner);
+
+  final PageTransitionsBuilder inner;
+
+  @override
+  Duration get transitionDuration => inner.transitionDuration;
+
+  @override
+  Duration get reverseTransitionDuration => inner.reverseTransitionDuration;
+
+  @override
+  DelegatedTransitionBuilder? get delegatedTransition => inner.delegatedTransition;
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => inner.buildTransitions(
+    route,
+    context,
+    animation,
+    secondaryAnimation,
+    ColoredBox(color: Theme.of(context).scaffoldBackgroundColor, child: child),
   );
 }

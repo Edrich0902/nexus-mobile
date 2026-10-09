@@ -63,11 +63,15 @@ class NxRise extends StatelessWidget {
   }
 }
 
-/// Swaps between states (loading → content, idle → error) by letting the
-/// new child rise in while the old one fades out quickly underneath. Give
+/// Swaps between states (loading → content, idle → error): the old child
+/// fades out quickly, then the new one rises in — never both at once. Give
 /// each state a distinct key; same-key rebuilds don't animate.
 class NxSwitcher extends StatelessWidget {
   const NxSwitcher({required this.child, this.alignment = Alignment.topCenter, super.key});
+
+  /// Share of the entrance spent waiting for the outgoing child (which takes
+  /// [NxTiming.fast]) to clear.
+  static final _handover = NxTiming.fast.inMicroseconds / (NxTiming.fast + NxTiming.rise).inMicroseconds;
 
   final Widget child;
   final AlignmentGeometry alignment;
@@ -76,9 +80,9 @@ class NxSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     if (reduceMotion(context)) return child;
     return AnimatedSwitcher(
-      duration: NxTiming.rise,
+      duration: NxTiming.fast + NxTiming.rise,
       reverseDuration: NxTiming.fast,
-      switchInCurve: NxMotion.ease,
+      switchInCurve: Interval(_handover, 1, curve: NxMotion.ease),
       switchOutCurve: NxTiming.exit,
       layoutBuilder: (current, previous) => Stack(alignment: alignment, children: [...previous, ?current]),
       transitionBuilder: (child, animation) => AnimatedBuilder(
