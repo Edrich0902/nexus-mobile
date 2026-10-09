@@ -34,16 +34,25 @@ class PagedPrints extends ConsumerWidget {
   final String filterLabel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) => NxSwitcher(child: _state(context, ref));
+
+  Widget _state(BuildContext context, WidgetRef ref) {
     final list = ref.watch(pagedProvider(query));
     final s = list.value;
     if (s == null) {
       return list.hasError
-          ? NxErrorState(error: list.error!, onRetry: () => ref.invalidate(pagedProvider(query)))
-          : const _PrintsSkeleton();
+          ? NxErrorState(
+              key: const ValueKey('error'),
+              error: list.error!,
+              onRetry: () => ref.invalidate(pagedProvider(query)),
+            )
+          : const _PrintsSkeleton(key: ValueKey('loading'));
     }
-    if (s.items.isEmpty) return query.params.isEmpty ? empty : noMatch;
+    if (s.items.isEmpty) {
+      return KeyedSubtree(key: ValueKey('empty:${query.params}'), child: query.params.isEmpty ? empty : noMatch);
+    }
     return AnimatedOpacity(
+      key: const ValueKey('data'),
       opacity: list.isLoading ? .55 : 1,
       duration: const Duration(milliseconds: 200),
       child: Column(
@@ -72,7 +81,7 @@ class PagedPrints extends ConsumerWidget {
 }
 
 class _PrintsSkeleton extends StatelessWidget {
-  const _PrintsSkeleton();
+  const _PrintsSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) => const Padding(
@@ -129,21 +138,25 @@ class _DrinkIndexScreenState extends ConsumerState<DrinkIndexScreen> with Deboun
           actions: [NxButton(copy.add, icon: LucideIcons.plus, onPressed: _create)],
         ),
         if (all == null || all.items.isNotEmpty)
-          all == null
-              ? const Padding(
-                  padding: EdgeInsets.only(top: 22),
-                  child: NxSkeleton(height: 240, radius: NxRadius.xl),
-                )
-              : CollectionFields(
-                  section: kind.section,
-                  fields: drinkFields(
-                    items: all.items,
-                    total: all.total,
-                    countLabel: kind.countLabel,
-                    noun: kind.noun,
-                    to: (i) => kind.pathFor(i.integer('id') ?? 0),
+          NxSwitcher(
+            child: all == null
+                ? const Padding(
+                    key: ValueKey('loading'),
+                    padding: EdgeInsets.only(top: 22),
+                    child: NxSkeleton(height: 240, radius: NxRadius.xl),
+                  )
+                : CollectionFields(
+                    key: const ValueKey('fields'),
+                    section: kind.section,
+                    fields: drinkFields(
+                      items: all.items,
+                      total: all.total,
+                      countLabel: kind.countLabel,
+                      noun: kind.noun,
+                      to: (i) => kind.pathFor(i.integer('id') ?? 0),
+                    ),
                   ),
-                ),
+          ),
         const SizedBox(height: 22),
         Row(
           children: [

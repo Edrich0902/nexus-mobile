@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -43,22 +44,7 @@ Future<MediaImage?> pickAndUploadImage(
   if (picked == null || !context.mounted) return null;
 
   final progress = ValueNotifier<double>(0);
-  final messenger = ScaffoldMessenger.maybeOf(context);
-  final banner = messenger?.showSnackBar(
-    SnackBar(
-      duration: const Duration(minutes: 2),
-      content: ValueListenableBuilder(
-        valueListenable: progress,
-        builder: (_, v, _) => Row(
-          children: [
-            const Text('Uploading'),
-            const SizedBox(width: 12),
-            Expanded(child: LinearProgressIndicator(value: v == 0 ? null : v)),
-          ],
-        ),
-      ),
-    ),
-  );
+  final banner = showNxToast(context, 'Uploading photo', progress: progress, duration: const Duration(minutes: 2));
   try {
     final json = await ref
         .read(mediaUploaderProvider)
@@ -70,13 +56,14 @@ Future<MediaImage?> pickAndUploadImage(
           role: role,
           onProgress: (v) => progress.value = v,
         );
-    banner?.close();
+    banner.close();
     return MediaImage.fromJson(json);
   } on Object catch (e) {
-    banner?.close();
+    banner.close();
     if (context.mounted) showApiError(context, e, 'Upload failed.');
     return null;
   } finally {
-    progress.dispose();
+    // The toast still listens while it animates out.
+    Timer(const Duration(seconds: 1), progress.dispose);
   }
 }

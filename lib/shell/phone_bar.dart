@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -44,7 +43,11 @@ class PhoneBar extends ConsumerWidget {
               AnimatedSize(
                 duration: const Duration(milliseconds: 260),
                 curve: NxMotion.ease,
-                child: hasTrack ? const _Strip() : const SizedBox(width: double.infinity),
+                child: NxSwitcher(
+                  child: hasTrack
+                      ? const _Strip(key: ValueKey('strip'))
+                      : const SizedBox(key: ValueKey('none'), width: double.infinity),
+                ),
               ),
               SizedBox(
                 height: tabsHeight,
@@ -74,7 +77,9 @@ class PhoneBar extends ConsumerWidget {
   }
 }
 
-class _Tab extends StatelessWidget {
+/// A tab: the active one sits on a tinted pill that grows in, and its icon
+/// gives a small spring when it becomes active.
+class _Tab extends StatefulWidget {
   const _Tab({required this.icon, required this.label, required this.active, required this.onTap});
 
   final IconData icon;
@@ -83,30 +88,72 @@ class _Tab extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_Tab> createState() => _TabState();
+}
+
+class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
+  late final AnimationController _pop = AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
+  late final Animation<double> _scale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1.18).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
+    TweenSequenceItem(
+      tween: Tween<double>(begin: 1.18, end: 1).chain(CurveTween(curve: Curves.elasticOut)),
+      weight: 65,
+    ),
+  ]).animate(_pop);
+
+  @override
+  void didUpdateWidget(_Tab old) {
+    super.didUpdateWidget(old);
+    if (widget.active && !old.active && !reduceMotion(context)) _pop.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _pop.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.nx;
+    final active = widget.active;
     final color = active ? c.acc : c.ink3;
     return Expanded(
       child: Semantics(
         button: true,
         selected: active,
-        label: label,
+        label: widget.label,
         excludeSemantics: true,
-        child: InkResponse(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
-          radius: 36,
+        child: NxPressable(
+          onTap: widget.onTap,
+          scale: .9,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 21, color: color),
+              AnimatedContainer(
+                duration: NxTiming.base,
+                curve: NxMotion.ease,
+                width: active ? 52 : 34,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: active ? c.acc.withValues(alpha: .16) : c.acc.withValues(alpha: 0),
+                  borderRadius: BorderRadius.circular(NxRadius.pill),
+                ),
+                alignment: Alignment.center,
+                child: ScaleTransition(
+                  scale: _scale,
+                  child: TweenAnimationBuilder<Color?>(
+                    tween: ColorTween(end: color),
+                    duration: NxTiming.base,
+                    builder: (_, value, _) => Icon(widget.icon, size: 20, color: value),
+                  ),
+                ),
+              ),
               const SizedBox(height: 3),
-              Text(
-                label,
-                style: NxText.sans(size: 11, weight: FontWeight.w500, color: color),
-                maxLines: 1,
+              AnimatedDefaultTextStyle(
+                duration: NxTiming.base,
+                style: NxText.sans(size: 11, weight: active ? FontWeight.w600 : FontWeight.w500, color: color),
+                child: Text(widget.label, maxLines: 1),
               ),
             ],
           ),
@@ -117,7 +164,7 @@ class _Tab extends StatelessWidget {
 }
 
 class _Strip extends ConsumerWidget {
-  const _Strip();
+  const _Strip({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -142,27 +189,34 @@ class _Strip extends ConsumerWidget {
                   SizedBox(
                     width: 36,
                     height: 36,
-                    child: NxImage(url: p.art, radius: 8, fallbackIcon: LucideIcons.music),
+                    child: AnimatedSwitcher(
+                      duration: NxTiming.page,
+                      child: NxImage(key: ValueKey(p.art), url: p.art, radius: 8, fallbackIcon: LucideIcons.music),
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          p.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: NxText.sans(size: 13.5, weight: FontWeight.w600, color: c.ink),
-                        ),
-                        Text(
-                          [p.artists, ?device].where((s) => s.isNotEmpty).join(' · '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: NxText.sans(size: 12, color: c.ink3),
-                        ),
-                      ],
+                    child: NxSwitcher(
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        key: ValueKey(p.uri),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            p.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: NxText.sans(size: 13.5, weight: FontWeight.w600, color: c.ink),
+                          ),
+                          Text(
+                            [p.artists, ?device].where((s) => s.isNotEmpty).join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: NxText.sans(size: 12, color: c.ink3),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   if (p.isPlaying) const Padding(padding: EdgeInsets.symmetric(horizontal: 6), child: NxEqualiser()),

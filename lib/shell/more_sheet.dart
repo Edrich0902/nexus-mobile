@@ -26,14 +26,18 @@ Future<void> showMoreSheet(BuildContext context, String location) {
             crossAxisSpacing: 8,
             childAspectRatio: 1.9,
             children: [
-              for (final d in dests)
-                _Tile(
-                  dest: d,
-                  active: Nav.isActive(d, location),
-                  onTap: () {
-                    Navigator.of(sheet).pop();
-                    context.go(d.to);
-                  },
+              for (final (i, d) in dests.indexed)
+                NxRise(
+                  index: i,
+                  distance: 16,
+                  child: _Tile(
+                    dest: d,
+                    active: Nav.isActive(d, location),
+                    onTap: () {
+                      Navigator.of(sheet).pop();
+                      context.go(d.to);
+                    },
+                  ),
                 ),
             ],
           ),

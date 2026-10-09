@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
@@ -6,6 +11,8 @@ import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
+import 'package:nexus_mobile/design/widgets/nx_layout.dart';
+import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 /// Empty state (web NxEmptyState): icon tile, serif title, body, action.
 class NxEmptyState extends StatelessWidget {
@@ -84,7 +91,8 @@ class NxErrorState extends StatelessWidget {
   }
 }
 
-/// Soft pulsing placeholder block.
+/// Placeholder block with a soft highlight sweeping across. Every skeleton
+/// shares one wall-clock phase, so a page of them shimmers in step.
 class NxSkeleton extends StatefulWidget {
   const NxSkeleton({this.width, this.height = 16, this.radius = NxRadius.sm, super.key});
 
@@ -97,8 +105,20 @@ class NxSkeleton extends StatefulWidget {
 }
 
 class _NxSkeletonState extends State<NxSkeleton> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))
-    ..repeat(reverse: true);
+  static const _period = Duration(milliseconds: 1500);
+  late final AnimationController _c = AnimationController(vsync: this, duration: _period);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (reduceMotion(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c
+        ..value = (DateTime.now().millisecondsSinceEpoch % _period.inMilliseconds) / _period.inMilliseconds
+        ..repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -109,6 +129,16 @@ class _NxSkeletonState extends State<NxSkeleton> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
+    final radius = BorderRadius.circular(widget.radius);
+    if (reduceMotion(context)) {
+      return ExcludeSemantics(
+        child: Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(color: c.tint, borderRadius: radius),
+        ),
+      );
+    }
     return ExcludeSemantics(
       child: AnimatedBuilder(
         animation: _c,
@@ -116,13 +146,27 @@ class _NxSkeletonState extends State<NxSkeleton> with SingleTickerProviderStateM
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            color: Color.lerp(c.tint, c.tint2, _c.value),
-            borderRadius: BorderRadius.circular(widget.radius),
+            borderRadius: radius,
+            gradient: LinearGradient(
+              colors: [c.tint, Color.lerp(c.tint2, c.ink, .06)!, c.tint],
+              stops: const [.35, .5, .65],
+              transform: _Sweep(_c.value),
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+class _Sweep extends GradientTransform {
+  const _Sweep(this.t);
+
+  final double t;
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) =>
+      Matrix4.translationValues(bounds.width * (t * 2.4 - 1.2), 0, 0);
 }
 
 /// Generic page skeleton: stage + bento + rows.
@@ -164,8 +208,8 @@ class NxPageSkeleton extends StatelessWidget {
   }
 }
 
-/// Renders an [AsyncValue] with Nexus loading/error states. Keeps showing
-/// previous data while refreshing.
+/// Renders an [AsyncValue] with Nexus loading/error states, cross-fading
+/// between them. Keeps showing previous data while refreshing.
 class NxAsync<T> extends StatelessWidget {
   const NxAsync({required this.value, required this.data, this.loading, this.onRetry, super.key});
 
@@ -176,41 +220,245 @@ class NxAsync<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return value.when(
-      skipLoadingOnRefresh: true,
-      skipLoadingOnReload: true,
-      data: data,
-      loading: () => loading ?? const NxPageSkeleton(),
-      error: (e, _) => NxErrorState(error: e, onRetry: onRetry),
+    return NxSwitcher(
+      child: value.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
+        data: (d) => KeyedSubtree(key: const ValueKey('data'), child: data(d)),
+        loading: () => KeyedSubtree(key: const ValueKey('loading'), child: loading ?? const NxPageSkeleton()),
+        error: (e, _) => KeyedSubtree(
+          key: const ValueKey('error'),
+          child: NxErrorState(error: e, onRetry: onRetry),
+        ),
+      ),
     );
   }
 }
 
-void showNxToast(
+/// The toast on screen, if any; showing another replaces it.
+NxToast? _activeToast;
+
+/// Handle to a shown toast; [close] dismisses it early (e.g. an upload
+/// finished).
+class NxToast {
+  NxToast._();
+
+  OverlayEntry? _entry;
+  final _closing = ValueNotifier(false);
+  bool _removed = false;
+
+  void close() {
+    if (!_removed) _closing.value = true;
+  }
+
+  void _remove() {
+    if (_removed) return;
+    _removed = true;
+    _entry?.remove();
+    _closing.dispose();
+    if (identical(_activeToast, this)) _activeToast = null;
+  }
+}
+
+/// A floating toast above the tab bar (and keyboard). It springs in, can
+/// be swiped away, and leaves on its own; pass [progress] (0–1, or 0 for
+/// indeterminate) to show a long-running task.
+NxToast showNxToast(
   BuildContext context,
   String message, {
   bool error = false,
   String? actionLabel,
   VoidCallback? onAction,
+  ValueListenable<double>? progress,
+  Duration? duration,
 }) {
-  final c = context.nx;
-  ScaffoldMessenger.maybeOf(context)
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(error ? LucideIcons.circleAlert : LucideIcons.check, size: 18, color: error ? NexusColors.bad : c.acc),
-            const SizedBox(width: 10),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        action: actionLabel == null
-            ? null
-            : SnackBarAction(label: actionLabel, textColor: c.acc, onPressed: onAction ?? () {}),
-      ),
-    );
+  final toast = NxToast._();
+  final overlay = Overlay.maybeOf(context, rootOverlay: true);
+  if (overlay == null) return toast;
+  _activeToast?.close();
+  _activeToast = toast;
+
+  final mq = MediaQuery.of(context);
+  final bottom = math.max(ShellInsets.maybeOf(context)?.bottom ?? mq.padding.bottom, mq.viewInsets.bottom) + 12;
+  final view = _ToastView(
+    toast: toast,
+    colors: context.nx,
+    message: message,
+    error: error,
+    actionLabel: actionLabel,
+    onAction: onAction,
+    progress: progress,
+    bottom: bottom,
+    duration:
+        duration ?? (actionLabel != null || error ? const Duration(seconds: 5) : const Duration(milliseconds: 3200)),
+  );
+  toast._entry = OverlayEntry(builder: (_) => view);
+  overlay.insert(toast._entry!);
+  if (progress == null) unawaited(error ? HapticFeedback.mediumImpact() : HapticFeedback.lightImpact());
+  return toast;
 }
 
-void showApiError(BuildContext context, Object error, [String fallback = 'Something went wrong.']) =>
+NxToast showApiError(BuildContext context, Object error, [String fallback = 'Something went wrong.']) =>
     showNxToast(context, ApiError.from(error, fallback).message, error: true);
+
+class _ToastView extends StatefulWidget {
+  const _ToastView({
+    required this.toast,
+    required this.colors,
+    required this.message,
+    required this.error,
+    required this.bottom,
+    required this.duration,
+    this.actionLabel,
+    this.onAction,
+    this.progress,
+  });
+
+  final NxToast toast;
+  final NexusColors colors;
+  final String message;
+  final bool error;
+  final double bottom;
+  final Duration duration;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final ValueListenable<double>? progress;
+
+  @override
+  State<_ToastView> createState() => _ToastViewState();
+}
+
+class _ToastViewState extends State<_ToastView> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+    reverseDuration: const Duration(milliseconds: 200),
+  );
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.toast._closing.addListener(_leave);
+    _c.forward();
+    _timer = Timer(widget.duration, _leave);
+  }
+
+  void _leave() {
+    _timer?.cancel();
+    if (!mounted || _c.status == AnimationStatus.reverse) return;
+    _c.reverse().whenComplete(widget.toast._remove);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.colors;
+    final reduce = reduceMotion(context);
+    final tone = widget.error ? NexusColors.bad : c.acc;
+    final enter = CurvedAnimation(parent: _c, curve: Curves.easeOutBack, reverseCurve: NxTiming.exit);
+    final fade = CurvedAnimation(parent: _c, curve: Curves.easeOut, reverseCurve: NxTiming.exit);
+
+    final card = Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      decoration: BoxDecoration(
+        color: c.overlay,
+        borderRadius: BorderRadius.circular(NxRadius.lg),
+        border: Border.all(color: widget.error ? NexusColors.bad.withValues(alpha: .4) : c.lineStrong),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 30, offset: const Offset(0, 14)),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: tone.withValues(alpha: .16)),
+                child: widget.progress != null
+                    ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: tone))
+                    : Icon(widget.error ? LucideIcons.circleAlert : LucideIcons.check, size: 16, color: tone),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(widget.message, style: NxText.sans(color: c.ink, height: 1.35)),
+              ),
+              if (widget.actionLabel != null)
+                TextButton(
+                  onPressed: () {
+                    widget.onAction?.call();
+                    _leave();
+                  },
+                  style: TextButton.styleFrom(foregroundColor: c.acc, visualDensity: VisualDensity.compact),
+                  child: Text(
+                    widget.actionLabel!,
+                    style: NxText.sans(weight: FontWeight.w600, color: c.acc),
+                  ),
+                )
+              else
+                const SizedBox(width: 6),
+            ],
+          ),
+          if (widget.progress case final progress?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(40, 10, 6, 2),
+              child: ValueListenableBuilder(
+                valueListenable: progress,
+                builder: (_, v, _) => ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: v == 0 ? null : v,
+                    minHeight: 3,
+                    color: tone,
+                    backgroundColor: c.line,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    return Positioned(
+      left: 16,
+      right: 16,
+      bottom: widget.bottom,
+      child: Semantics(
+        liveRegion: true,
+        child: Material(
+          type: MaterialType.transparency,
+          child: Dismissible(
+            key: ObjectKey(widget.toast),
+            direction: DismissDirection.down,
+            onDismissed: (_) => widget.toast._remove(),
+            child: reduce
+                ? FadeTransition(opacity: fade, child: card)
+                : AnimatedBuilder(
+                    animation: _c,
+                    child: card,
+                    builder: (context, child) => Opacity(
+                      opacity: fade.value.clamp(0, 1),
+                      child: Transform.translate(
+                        offset: Offset(0, 28 * (1 - enter.value)),
+                        child: Transform.scale(scale: .94 + .06 * enter.value, child: child),
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -33,6 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _busy = false;
   bool _obscure = true;
   String? _error;
+  int _rejections = 0;
   late Timer _clock;
   DateTime _now = DateTime.now();
 
@@ -61,10 +63,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref
           .read(authProvider.notifier)
           .login(email: _email.text.trim(), password: _password.text, remember: _remember);
+      unawaited(HapticFeedback.lightImpact());
     } on Object catch (e) {
       final err = ApiError.from(e, 'Could not sign in.');
+      unawaited(HapticFeedback.heavyImpact());
       setState(() {
         _error = err.field('email') ?? err.message;
+        _rejections++;
         _password.clear();
       });
     } finally {
@@ -161,26 +166,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 16),
-                    Stack(
-                      children: [
-                        NxTextField(
-                          label: 'Password',
-                          controller: _password,
-                          obscure: _obscure,
-                          autofillHints: const [AutofillHints.password],
-                          textInputAction: TextInputAction.go,
-                          onSubmitted: (_) => _submit(),
-                        ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: NxIconButton(
-                            _obscure ? LucideIcons.eye : LucideIcons.eyeOff,
-                            tooltip: _obscure ? 'Show password' : 'Hide password',
-                            onPressed: () => setState(() => _obscure = !_obscure),
+                    NxShake(
+                      trigger: _rejections == 0 ? null : _rejections,
+                      child: Stack(
+                        children: [
+                          NxTextField(
+                            label: 'Password',
+                            controller: _password,
+                            obscure: _obscure,
+                            autofillHints: const [AutofillHints.password],
+                            textInputAction: TextInputAction.go,
+                            onSubmitted: (_) => _submit(),
                           ),
-                        ),
-                      ],
+                          Positioned(
+                            right: 4,
+                            bottom: 4,
+                            child: NxIconButton(
+                              _obscure ? LucideIcons.eye : LucideIcons.eyeOff,
+                              tooltip: _obscure ? 'Show password' : 'Hide password',
+                              onPressed: () => setState(() => _obscure = !_obscure),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     MergeSemantics(
@@ -192,13 +200,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                     ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Semantics(
-                        liveRegion: true,
-                        child: _Note(icon: LucideIcons.circleAlert, text: _error!, error: true),
+                    AnimatedSize(
+                      duration: NxTiming.base,
+                      curve: NxMotion.ease,
+                      alignment: Alignment.topCenter,
+                      child: NxSwitcher(
+                        child: _error == null
+                            ? const SizedBox(key: ValueKey('ok'), width: double.infinity)
+                            : Padding(
+                                key: ValueKey('error:$_rejections'),
+                                padding: const EdgeInsets.only(top: 12),
+                                child: Semantics(
+                                  liveRegion: true,
+                                  child: _Note(icon: LucideIcons.circleAlert, text: _error!, error: true),
+                                ),
+                              ),
                       ),
-                    ],
+                    ),
                     const SizedBox(height: 24),
                     NxButton('Sign in', onPressed: _submit, loading: _busy, wide: true),
                   ],

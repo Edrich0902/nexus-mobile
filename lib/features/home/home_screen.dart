@@ -75,41 +75,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: NxPage(
         onRefresh: _refresh,
         children: [
-          if (data == null && now.isLoading)
-            const NxPageSkeleton(rows: 0)
-          else if (data == null || data.isEmpty)
-            const NxStage(eyebrow: 'Today', title: 'Welcome', accent: 'back')
-          else
-            _NowStage(now: data),
+          NxSwitcher(
+            child: data == null && now.isLoading
+                ? const NxPageSkeleton(key: ValueKey('loading'), rows: 0)
+                : data == null || data.isEmpty
+                ? const NxStage(key: ValueKey('welcome'), eyebrow: 'Today', title: 'Welcome', accent: 'back')
+                : _NowStage(now: data),
+          ),
           if (modules.summary.isNotEmpty) ...[
             const SizedBox(height: 20),
             NxRise(child: NxSerifSummary(modules.summary)),
           ],
-          if (modules.loading && modules.fields.every((f) => f.value == '0' || f.value == '—'))
-            const Padding(
-              padding: EdgeInsets.only(top: 22),
-              child: NxSkeleton(height: 260, radius: NxRadius.xl),
-            )
-          else
-            NxBento(
-              children: [
-                for (final f in modules.fields)
-                  NxField(
-                    key: ValueKey(f.key),
-                    bg: f.section.field.bg,
-                    ink: f.section.field.ink,
-                    variant: f.tint ? FieldVariant.tint : FieldVariant.solid,
-                    label: f.label,
-                    aside: f.aside,
-                    value: f.value,
-                    valueSize: f.valueSize,
-                    sub: f.sub,
-                    span: f.span,
-                    minHeight: f.span == 2 ? 170 : 120,
-                    onTap: () => context.go(f.to),
+          NxSwitcher(
+            child: modules.loading && modules.fields.every((f) => f.value == '0' || f.value == '—')
+                ? const Padding(
+                    key: ValueKey('loading'),
+                    padding: EdgeInsets.only(top: 22),
+                    child: NxSkeleton(height: 260, radius: NxRadius.xl),
+                  )
+                : NxBento(
+                    key: const ValueKey('fields'),
+                    children: [
+                      for (final f in modules.fields)
+                        NxField(
+                          key: ValueKey(f.key),
+                          bg: f.section.field.bg,
+                          ink: f.section.field.ink,
+                          variant: f.tint ? FieldVariant.tint : FieldVariant.solid,
+                          label: f.label,
+                          aside: f.aside,
+                          value: f.value,
+                          valueSize: f.valueSize,
+                          sub: f.sub,
+                          span: f.span,
+                          minHeight: f.span == 2 ? 170 : 120,
+                          onTap: () => context.go(f.to),
+                        ),
+                    ],
                   ),
-              ],
-            ),
+          ),
           const NxSectionHeader('Your stream'),
           const _Stream(),
           const NxSectionHeader('Coming up'),
@@ -174,16 +178,18 @@ class _Stream extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activity = ref.watch(activityProvider);
-    final c = context.nx;
-    return activity.when(
+    var n = 0;
+    final body = activity.when(
       skipLoadingOnRefresh: true,
       loading: () => Column(
+        key: const ValueKey('loading'),
         children: [
           for (var i = 0; i < 4; i++)
             const Padding(padding: EdgeInsets.only(bottom: 10), child: NxSkeleton(height: 64)),
         ],
       ),
       error: (e, _) => NxEmptyState(
+        key: const ValueKey('error'),
         icon: LucideIcons.x,
         title: 'Could not load your stream',
         body: 'Try again in a moment.',
@@ -194,6 +200,7 @@ class _Stream extends ConsumerWidget {
       data: (state) {
         if (state.items.isEmpty) {
           return const NxEmptyState(
+            key: ValueKey('empty'),
             icon: LucideIcons.activity,
             title: 'A quiet stream',
             body: 'Tastings, books, recipes, pushes and listening sessions show up here as they happen.',
@@ -201,24 +208,28 @@ class _Stream extends ConsumerWidget {
           );
         }
         return Column(
+          key: const ValueKey('data'),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (final (label, events) in groupByDay(state.items)) ...[
-              NxStreamGroup(label),
+              NxRise(key: ValueKey('day:$label'), index: n++, child: NxStreamGroup(label)),
               for (final e in events)
-                NxStreamItem(
+                NxRise(
                   key: ValueKey(e.str('id')),
-                  time: streamStamp(e.date('occurred_at') ?? DateTime.now()),
-                  color: activityColour(e),
-                  kind: activityKind(e),
-                  meta: activityVerb(e),
-                  title: e.text('title'),
-                  body: e.str('body'),
-                  chips: activityChips(e),
-                  onTap: switch (activityPath(e)) {
-                    final String path => () => context.go(path),
-                    null => null,
-                  },
+                  index: n++,
+                  child: NxStreamItem(
+                    time: streamStamp(e.date('occurred_at') ?? DateTime.now()),
+                    color: activityColour(e),
+                    kind: activityKind(e),
+                    meta: activityVerb(e),
+                    title: e.text('title'),
+                    body: e.str('body'),
+                    chips: activityChips(e),
+                    onTap: switch (activityPath(e)) {
+                      final String path => () => context.go(path),
+                      null => null,
+                    },
+                  ),
                 ),
             ],
             if (state.cursor != null)
@@ -226,15 +237,13 @@ class _Stream extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 62, top: 8),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: state.loadingMore ? null : () => ref.read(activityProvider.notifier).loadMore(),
-                    icon: Icon(LucideIcons.chevronDown, size: 14, color: c.ink2),
-                    label: Text('Show earlier', style: NxText.sans(size: 13, color: c.ink2)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: c.tint,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
+                  child: NxButton(
+                    'Show earlier',
+                    icon: LucideIcons.chevronDown,
+                    variant: NxButtonVariant.secondary,
+                    compact: true,
+                    loading: state.loadingMore,
+                    onPressed: () => ref.read(activityProvider.notifier).loadMore(),
                   ),
                 ),
               ),
@@ -242,5 +251,6 @@ class _Stream extends ConsumerWidget {
         );
       },
     );
+    return NxSwitcher(child: body);
   }
 }

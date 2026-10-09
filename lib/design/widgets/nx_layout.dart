@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_field.dart' show NxField;
+import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart' show NxField;
 
 /// Space the shell's floating top bar and phone bar take up, so pages can
@@ -22,7 +24,9 @@ class ShellInsets extends InheritedWidget {
 const pagePad = 20.0;
 
 /// Standard scrolling page: shell-aware padding, optional pull-to-refresh.
-class NxPage extends StatelessWidget {
+/// Sections stagger in when the page opens; ones built later (scrolled to,
+/// or arriving with data after the opening beat) just appear.
+class NxPage extends StatefulWidget {
   const NxPage({required this.children, this.onRefresh, this.controller, this.padTop = 8, super.key}) : slivers = null;
 
   const NxPage.slivers({
@@ -40,16 +44,36 @@ class NxPage extends StatelessWidget {
   final double padTop;
 
   @override
+  State<NxPage> createState() => _NxPageState();
+}
+
+class _NxPageState extends State<NxPage> {
+  static const _openingBeat = Duration(milliseconds: 700);
+  final _opened = Stopwatch()..start();
+
+  Widget _section(int index, Widget child) => _KeepAlive(
+    key: child.key,
+    child: NxRise(index: index, animate: _opened.elapsed < _openingBeat, child: child),
+  );
+
+  @override
   Widget build(BuildContext context) {
     final insets = ShellInsets.maybeOf(context);
     final mq = MediaQuery.of(context);
-    final top = (insets?.top ?? mq.padding.top) + padTop;
+    final top = (insets?.top ?? mq.padding.top) + widget.padTop;
     final bottom = (insets?.bottom ?? mq.padding.bottom) + 32;
+    final onRefresh = widget.onRefresh;
 
-    final body = slivers ?? [SliverList.list(children: children)];
+    final body =
+        widget.slivers ??
+        [
+          SliverList.list(
+            children: [for (final (i, child) in widget.children.indexed) _section(i, child)],
+          ),
+        ];
 
     Widget scroll = CustomScrollView(
-      controller: controller,
+      controller: widget.controller,
       physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       slivers: [
         SliverPadding(
@@ -61,14 +85,39 @@ class NxPage extends StatelessWidget {
 
     if (onRefresh != null) {
       scroll = RefreshIndicator(
-        onRefresh: onRefresh!,
-        edgeOffset: top - padTop,
+        onRefresh: () {
+          HapticFeedback.mediumImpact();
+          return onRefresh();
+        },
+        edgeOffset: top - widget.padTop,
         color: context.nx.acc,
         backgroundColor: context.nx.surface2,
         child: scroll,
       );
     }
     return scroll;
+  }
+}
+
+/// Keeps a page section built once seen, so scrolling back doesn't rebuild
+/// it (or replay its entrance).
+class _KeepAlive extends StatefulWidget {
+  const _KeepAlive({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 
@@ -156,6 +205,7 @@ class NxBento extends StatelessWidget {
       used += span;
     }
     if (current.isNotEmpty) rows.add(current);
+    var tile = 0;
 
     return Padding(
       padding: EdgeInsets.only(top: top),
@@ -171,7 +221,7 @@ class NxBento extends StatelessWidget {
                     if (j > 0) SizedBox(width: gap),
                     Expanded(
                       flex: rows[i][j] is BentoItem ? (rows[i][j] as BentoItem).span : 1,
-                      child: rows[i][j],
+                      child: NxRise(index: tile++, distance: 14, child: rows[i][j]),
                     ),
                   ],
                   if (rows[i].length == 1 && (rows[i][0] is! BentoItem || (rows[i][0] as BentoItem).span == 1)) ...[
@@ -234,29 +284,6 @@ class NxFacts extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-/// Rise-in entrance (web `.nx-rise`).
-class NxRise extends StatelessWidget {
-  const NxRise({required this.child, this.delay = Duration.zero, super.key});
-
-  final Widget child;
-  final Duration delay;
-
-  @override
-  Widget build(BuildContext context) {
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return child;
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: NxMotion.enter + delay,
-      curve: Interval(delay.inMilliseconds / (NxMotion.enter + delay).inMilliseconds, 1, curve: NxMotion.ease),
-      builder: (context, t, child) => Opacity(
-        opacity: t,
-        child: Transform.translate(offset: Offset(0, 10 * (1 - t)), child: child),
-      ),
-      child: child,
     );
   }
 }

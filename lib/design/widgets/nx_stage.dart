@@ -3,7 +3,7 @@ import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
-import 'package:nexus_mobile/design/widgets/nx_layout.dart';
+import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 enum StageArt { square, portrait }
 
@@ -44,31 +44,46 @@ class NxStage extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.nx;
     final size = compact ? 36.0 : 40.0;
-    return NxRise(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 8, bottom: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (visual != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(NxRadius.lg),
-                child: Container(
-                  width: art == StageArt.portrait ? 104 : 132,
-                  height: art == StageArt.portrait ? 156 : 132,
-                  color: c.amb2,
-                  child: visual,
+    var beat = 0;
+    Widget rise(Widget child, {double distance = 10}) => NxRise(index: beat++, distance: distance, child: child);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (visual != null) ...[
+            rise(
+              distance: 0,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: reduceMotion(context) ? 1 : .92, end: 1),
+                duration: NxTiming.rise,
+                curve: NxMotion.ease,
+                builder: (context, s, child) =>
+                    Transform.scale(scale: s, alignment: Alignment.bottomLeft, child: child),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(NxRadius.lg),
+                  child: Container(
+                    width: art == StageArt.portrait ? 104 : 132,
+                    height: art == StageArt.portrait ? 156 : 132,
+                    color: c.amb2,
+                    child: visual,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-            ],
-            if (eyebrow != null)
+            ),
+            const SizedBox(height: 20),
+          ],
+          if (eyebrow != null)
+            rise(
               Row(
                 children: [
                   if (live) ...[const NxLiveDot(), const SizedBox(width: 10)],
                   Flexible(child: Text(eyebrow!, style: NxText.eyebrow(context))),
                 ],
               ),
+            ),
+          rise(
+            distance: 16,
             Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 14),
               child: Semantics(
@@ -90,19 +105,30 @@ class NxStage extends StatelessWidget {
                 ),
               ),
             ),
-            if (ledeWidget != null)
+          ),
+          if (ledeWidget != null)
+            rise(
               DefaultTextStyle.merge(
                 style: NxText.sans(size: 15.5, color: c.ink2, height: 1.4),
                 child: ledeWidget!,
-              )
-            else if (lede != null)
-              Text(lede!, style: NxText.sans(size: 15.5, color: c.ink2, height: 1.4)),
-            if (progress != null)
+              ),
+            )
+          else if (lede != null)
+            rise(Text(lede!, style: NxText.sans(size: 15.5, color: c.ink2, height: 1.4))),
+          if (progress != null)
+            rise(
               Padding(
                 padding: const EdgeInsets.only(top: 18),
-                child: NxProgressRail(value: progress!, color: c.ink),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: progress),
+                  duration: NxTiming.count,
+                  curve: NxTiming.settle,
+                  builder: (_, v, _) => NxProgressRail(value: v, color: c.ink),
+                ),
               ),
-            if (actions.isNotEmpty)
+            ),
+          if (actions.isNotEmpty)
+            rise(
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: Wrap(
@@ -112,9 +138,9 @@ class NxStage extends StatelessWidget {
                   children: actions,
                 ),
               ),
-            ?below,
-          ],
-        ),
+            ),
+          ?below,
+        ],
       ),
     );
   }

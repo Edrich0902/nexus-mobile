@@ -8,6 +8,7 @@ export 'package:nexus_mobile/design/widgets/nx_field.dart';
 export 'package:nexus_mobile/design/widgets/nx_form.dart';
 export 'package:nexus_mobile/design/widgets/nx_layout.dart';
 export 'package:nexus_mobile/design/widgets/nx_media.dart';
+export 'package:nexus_mobile/design/widgets/nx_motion.dart';
 export 'package:nexus_mobile/design/widgets/nx_print_card.dart';
 export 'package:nexus_mobile/design/widgets/nx_sheet.dart';
 export 'package:nexus_mobile/design/widgets/nx_stage.dart';

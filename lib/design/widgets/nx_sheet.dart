@@ -16,12 +16,17 @@ Future<T?> showNxSheet<T>(
   bool expand = false,
   bool scrollable = true,
 }) {
+  unawaited(HapticFeedback.lightImpact());
   return showModalBottomSheet<T>(
     context: context,
     useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     barrierColor: Colors.black.withValues(alpha: .5),
+    sheetAnimationStyle: const AnimationStyle(
+      duration: Duration(milliseconds: 380),
+      reverseDuration: Duration(milliseconds: 220),
+    ),
     builder: (context) {
       final c = context.nx;
       final mq = MediaQuery.of(context);

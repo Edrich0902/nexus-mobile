@@ -12,6 +12,7 @@ import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
 import 'package:nexus_mobile/design/widgets/nx_data.dart';
 import 'package:nexus_mobile/design/widgets/nx_media.dart';
+import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 /// How artwork sits on the colour panel (web `PrintArtMode`).
 enum PrintArt { multiply, cutout, cover, photo }
@@ -459,10 +460,15 @@ class _NxPrintCollectionState extends ConsumerState<NxPrintCollection> {
           onChanged: (v) => setState(() => _note = v),
         ),
         const SizedBox(height: 16),
-        for (final p in widget.prints)
+        for (final (i, p) in widget.prints.indexed)
           Padding(
+            key: ValueKey(p.key),
             padding: const EdgeInsets.only(bottom: 12),
-            child: NxPrintCard(print: p, note: note, onTap: () => widget.onOpen(p)),
+            child: NxRise(
+              index: i,
+              distance: 18,
+              child: NxPrintCard(print: p, note: note, onTap: () => widget.onOpen(p)),
+            ),
           ),
       ],
     );

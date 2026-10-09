@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nexus_mobile/core/router/transitions.dart';
 import 'package:nexus_mobile/features/admin/admin_screen.dart';
 import 'package:nexus_mobile/features/capture/capture_screen.dart';
 import 'package:nexus_mobile/features/code/github_pull_create_screen.dart';
@@ -40,10 +42,10 @@ int _id(GoRouterState s, String name) => int.tryParse(s.pathParameters[name] ?? 
 /// Routes rendered inside the shell (top bar + phone bar). Paths mirror
 /// nexus-web so links from the API (activity, search, push) open as-is.
 final appRoutes = <RouteBase>[
-  GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
-  GoRoute(
-    path: '/spotify',
-    builder: (_, _) => const ListeningScreen(),
+  fadeRoute('/home', (_) => const HomeScreen()),
+  fadeRoute(
+    '/spotify',
+    (_) => const ListeningScreen(),
     routes: [
       GoRoute(
         path: 'search',
@@ -65,9 +67,9 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(
-    path: '/cellar',
-    builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.wine),
+  fadeRoute(
+    '/cellar',
+    (_) => const DrinkIndexScreen(kind: DrinkKind.wine),
     routes: [
       GoRoute(
         path: 'wines/:wineId',
@@ -75,9 +77,9 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(
-    path: '/beer',
-    builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.beer),
+  fadeRoute(
+    '/beer',
+    (_) => const DrinkIndexScreen(kind: DrinkKind.beer),
     routes: [
       GoRoute(
         path: 'beers/:beerId',
@@ -89,9 +91,9 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(
-    path: '/spirits',
-    builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.spirit),
+  fadeRoute(
+    '/spirits',
+    (_) => const DrinkIndexScreen(kind: DrinkKind.spirit),
     routes: [
       GoRoute(
         path: ':spiritId',
@@ -99,9 +101,9 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(
-    path: '/library',
-    builder: (_, _) => const LibraryScreen(),
+  fadeRoute(
+    '/library',
+    (_) => const LibraryScreen(),
     routes: [
       GoRoute(
         path: 'books/:bookId',
@@ -109,9 +111,9 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(
-    path: '/kitchen',
-    builder: (_, _) => const KitchenScreen(),
+  fadeRoute(
+    '/kitchen',
+    (_) => const KitchenScreen(),
     routes: [
       GoRoute(
         path: 'discover',
@@ -129,14 +131,14 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(
-    path: '/food-drink',
-    builder: (_, _) => const FoodDrinkScreen(),
+  fadeRoute(
+    '/food-drink',
+    (_) => const FoodDrinkScreen(),
     routes: [GoRoute(path: 'pairings', builder: (_, _) => const PairingsScreen())],
   ),
-  GoRoute(
-    path: '/f1',
-    builder: (_, _) => const F1Screen(),
+  fadeRoute(
+    '/f1',
+    (_) => const F1Screen(),
     routes: [
       GoRoute(
         path: 'meetings/:meetingKey',
@@ -158,15 +160,12 @@ final appRoutes = <RouteBase>[
     path: '/sports',
     redirect: (_, s) => s.uri.path == '/sports' || s.uri.path == '/sports/' ? '/sports/football' : null,
     routes: [
-      GoRoute(
-        path: ':sport',
-        builder: (_, s) => SportScreen(sport: s.pathParameters['sport'] ?? 'football'),
-      ),
+      fadeRoute(':sport', (s) => SportScreen(sport: s.pathParameters['sport'] ?? 'football')),
     ],
   ),
-  GoRoute(
-    path: '/github',
-    builder: (_, _) => const GithubScreen(),
+  fadeRoute(
+    '/github',
+    (_) => const GithubScreen(),
     routes: [
       GoRoute(path: 'pulls', builder: (_, _) => const GithubPullsScreen()),
       GoRoute(path: 'search', builder: (_, _) => const GithubSearchScreen()),
@@ -196,11 +195,11 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
-  GoRoute(path: '/media', builder: (_, _) => const MediaVaultScreen()),
-  GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
-  GoRoute(
-    path: '/profile',
-    builder: (_, _) => const ProfileScreen(),
+  fadeRoute('/media', (_) => const MediaVaultScreen()),
+  fadeRoute('/admin', (_) => const AdminScreen()),
+  fadeRoute(
+    '/profile',
+    (_) => const ProfileScreen(),
     routes: [GoRoute(path: 'sessions', builder: (_, _) => const SessionsScreen())],
   ),
 ];
@@ -209,9 +208,13 @@ final appRoutes = <RouteBase>[
 final rootRoutes = <RouteBase>[
   GoRoute(
     path: '/capture',
-    builder: (_, s) => CaptureScreen(
-      kind: s.uri.queryParameters['kind'],
-      barcode: s.uri.queryParameters['mode'] == 'barcode',
+    pageBuilder: (_, s) => MaterialPage(
+      key: s.pageKey,
+      fullscreenDialog: true,
+      child: CaptureScreen(
+        kind: s.uri.queryParameters['kind'],
+        barcode: s.uri.queryParameters['mode'] == 'barcode',
+      ),
     ),
   ),
 ];

@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
+import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 /// Scale-down press feedback used by every tappable card (web `:hover`
 /// scale(.985) translated to touch).
@@ -55,8 +56,8 @@ class _NxPressableState extends State<NxPressable> {
         excludeSemantics: widget.semanticLabel != null,
         child: AnimatedScale(
           scale: _down && !reduce ? widget.scale : 1,
-          duration: reduce ? Duration.zero : const Duration(milliseconds: 160),
-          curve: NxMotion.ease,
+          duration: reduce ? Duration.zero : Duration(milliseconds: _down ? 110 : 320),
+          curve: _down ? Curves.easeOut : Curves.easeOutBack,
           child: widget.child,
         ),
       ),
@@ -196,6 +197,16 @@ class NxButton extends StatelessWidget {
     };
     final disabled = onPressed == null || loading;
     final height = wide ? 50.0 : (compact ? 36.0 : 42.0);
+    final leading = loading
+        ? SizedBox(
+            key: const ValueKey('loading'),
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+          )
+        : icon == null
+        ? null
+        : Icon(icon, key: ValueKey(icon), size: 17, color: fg);
     final child = AnimatedOpacity(
       opacity: disabled && !loading ? .45 : 1,
       duration: NxMotion.hover,
@@ -208,11 +219,25 @@ class NxButton extends StatelessWidget {
           mainAxisSize: wide ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (loading)
-              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
-            else if (icon != null)
-              Icon(icon, size: 17, color: fg),
-            if (loading || icon != null) const SizedBox(width: 8),
+            AnimatedSize(
+              duration: NxTiming.base,
+              curve: NxMotion.ease,
+              child: AnimatedSwitcher(
+                duration: NxTiming.base,
+                switchInCurve: NxMotion.ease,
+                transitionBuilder: (child, a) => FadeTransition(
+                  opacity: a,
+                  child: ScaleTransition(scale: a, child: child),
+                ),
+                child: leading == null
+                    ? const SizedBox.shrink(key: ValueKey('none'))
+                    : Padding(
+                        key: leading.key,
+                        padding: const EdgeInsets.only(right: 8),
+                        child: leading,
+                      ),
+              ),
+            ),
             Flexible(
               child: Text(
                 label,
@@ -266,7 +291,15 @@ class NxIconButton extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Icon(icon, size: size * .48, color: color ?? (filled ? c.ink : c.ink2)),
+          AnimatedSwitcher(
+            duration: NxTiming.base,
+            switchInCurve: Curves.easeOutBack,
+            transitionBuilder: (child, a) => FadeTransition(
+              opacity: a,
+              child: ScaleTransition(scale: Tween<double>(begin: .6, end: 1).animate(a), child: child),
+            ),
+            child: Icon(icon, key: ValueKey(icon), size: size * .48, color: color ?? (filled ? c.ink : c.ink2)),
+          ),
           if (badge)
             Positioned(
               right: -2,
@@ -337,7 +370,7 @@ class NxChip extends StatelessWidget {
     return Semantics(
       button: onTap != null,
       selected: selected,
-      child: onTap == null ? chip : GestureDetector(onTap: onTap, child: chip),
+      child: onTap == null ? chip : NxPressable(onTap: onTap!, scale: .94, child: chip),
     );
   }
 }

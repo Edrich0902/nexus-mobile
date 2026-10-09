@@ -8,6 +8,7 @@ import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
 import 'package:nexus_mobile/design/widgets/nx_layout.dart';
+import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 enum FieldVariant { solid, tint, outline, surface }
 
@@ -104,7 +105,7 @@ class NxField extends StatelessWidget with BentoItem {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.bottomLeft,
-                    child: Text(
+                    child: NxCountUp(
                       value!,
                       style: NxText.display(size: valueSize, color: valueColor),
                     ),

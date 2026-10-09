@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/core/router/routes.dart';
+import 'package:nexus_mobile/core/router/transitions.dart';
 import 'package:nexus_mobile/features/auth/login_screen.dart';
 import 'package:nexus_mobile/features/auth/splash_screen.dart';
 import 'package:nexus_mobile/shell/app_shell.dart';
@@ -44,12 +45,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      fadeRoute('/splash', (_) => const SplashScreen()),
+      fadeRoute('/login', (_) => const LoginScreen()),
       GoRoute(path: '/', redirect: (_, _) => '/home'),
       ShellRoute(
         navigatorKey: shellNavigatorKey,
-        builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
+        pageBuilder: (context, state, child) =>
+            fadeThroughPage(state, AppShell(location: state.uri.path, child: child)),
         routes: appRoutes,
       ),
       ...rootRoutes,
