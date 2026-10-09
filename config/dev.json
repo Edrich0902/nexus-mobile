@@ -1,0 +1,6 @@
+{
+  "NEXUS_ENV": "dev",
+  "API_BASE_URL": "http://api.nexus.test",
+  "CLOUDINARY_CLOUD_NAME": "nexus-hub",
+  "SENTRY_DSN": ""
+}

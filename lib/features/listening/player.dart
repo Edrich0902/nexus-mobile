@@ -1,0 +1,399 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nexus_mobile/core/api/api_client.dart';
+import 'package:nexus_mobile/core/api/api_error.dart';
+import 'package:nexus_mobile/core/api/json.dart';
+import 'package:nexus_mobile/core/auth/auth.dart';
+import 'package:nexus_mobile/features/listening/spotify_api.dart';
+
+/// Spotify connection status (`/spotify/status`).
+final spotifyStatusProvider = FutureProvider<Json>((ref) async {
+  if (ref.watch(authProvider) is! SignedIn) return const {};
+  return ref.watch(spotifyApiProvider).status();
+});
+
+class PlayerState {
+  const PlayerState({
+    this.playback,
+    this.liked = const {},
+    this.busy = false,
+    this.featuresStatus = 'idle',
+    this.features,
+    this.similar = const [],
+    this.similarLoading = false,
+    this.settings,
+    this.queue,
+  });
+
+  final Json? playback;
+  final Map<String, bool> liked;
+  final bool busy;
+  final String featuresStatus;
+  final Json? features;
+  final List<Json> similar;
+  final bool similarLoading;
+  final Json? settings;
+  final Json? queue;
+
+  Json? get item => playback?.obj('item');
+  bool get isPlaying => playback?.flag('is_playing') ?? false;
+  bool get hasTrack => item != null;
+  String? get uri => item?.str('uri');
+  String? get trackId => item?.str('id');
+  String get title => item?.text('name') ?? '';
+  String get artists =>
+      (item?.list('artists') ?? const []).map((a) => a.text('name')).where((s) => s.isNotEmpty).join(', ');
+  String? get art {
+    final images = item?.obj('album')?.list('images') ?? const [];
+    return images.isEmpty ? null : images.first.str('url');
+  }
+
+  int get progressMs => playback?.integer('progress_ms') ?? 0;
+  int get durationMs => item?.integer('duration_ms') ?? 0;
+  double get progress => durationMs == 0 ? 0 : (progressMs / durationMs).clamp(0, 1);
+  Json? get device => playback?.obj('device');
+  String? get deviceId => device?.str('id');
+  bool get shuffle => playback?.flag('shuffle_state') ?? false;
+  String get repeat => playback?.text('repeat_state', 'off') ?? 'off';
+  bool get isLiked => uri != null && (liked[uri] ?? false);
+  bool get autoQueue => settings?.flag('auto_queue_enabled') ?? false;
+
+  PlayerState copyWith({
+    Json? playback,
+    bool clearPlayback = false,
+    Map<String, bool>? liked,
+    bool? busy,
+    String? featuresStatus,
+    Json? features,
+    bool clearFeatures = false,
+    List<Json>? similar,
+    bool? similarLoading,
+    Json? settings,
+    Json? queue,
+  }) => PlayerState(
+    playback: clearPlayback ? null : (playback ?? this.playback),
+    liked: liked ?? this.liked,
+    busy: busy ?? this.busy,
+    featuresStatus: featuresStatus ?? this.featuresStatus,
+    features: clearFeatures ? null : (features ?? this.features),
+    similar: similar ?? this.similar,
+    similarLoading: similarLoading ?? this.similarLoading,
+    settings: settings ?? this.settings,
+    queue: queue ?? this.queue,
+  );
+}
+
+/// One app-wide player (web spotify.store): polls every 8s while the app is
+/// foregrounded and Spotify is connected, backs off to 20s on 429, sends the
+/// listening heartbeat, keeps like-state and runs auto-queue.
+final playerProvider = NotifierProvider<PlayerController, PlayerState>(PlayerController.new);
+
+class PlayerController extends Notifier<PlayerState> {
+  static const _pollMs = 8000;
+  static const _pollMaxMs = 20000;
+
+  Timer? _timer;
+  int _interval = _pollMs;
+  bool _inFlight = false;
+  bool _heartbeatInFlight = false;
+  bool _foreground = true;
+  String? _lastHeartbeatId;
+  String? _lastAutoQueueSeed;
+  bool _autoQueueRunning = false;
+  final _autoQueued = <String>{};
+  final _similarFetched = <String>{};
+
+  /// Surfaces player errors to the shell's toast host.
+  final errors = StreamController<String>.broadcast();
+
+  SpotifyApi get _api => ref.read(spotifyApiProvider);
+
+  @override
+  PlayerState build() {
+    final lifecycle = AppLifecycleListener(onStateChange: _onLifecycle);
+    ref
+      ..onDispose(() {
+        lifecycle.dispose();
+        _timer?.cancel();
+        unawaited(errors.close());
+      })
+      ..listen(spotifyStatusProvider, (_, next) {
+        if (next.value?.flag('connected') ?? false) {
+          _start();
+        } else {
+          _stop();
+        }
+      }, fireImmediately: true);
+    return const PlayerState();
+  }
+
+  bool get _connected => ref.read(spotifyStatusProvider).value?.flag('connected') ?? false;
+
+  void _onLifecycle(AppLifecycleState lifecycle) {
+    _foreground = lifecycle == AppLifecycleState.resumed;
+    if (_foreground && _connected) {
+      _start();
+    } else {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _start() {
+    if (!_foreground) return;
+    unawaited(refresh());
+    unawaited(_loadSettings());
+    _restartTimer();
+  }
+
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+    if (state.playback != null) state = state.copyWith(clearPlayback: true);
+  }
+
+  void _restartTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(milliseconds: _interval), (_) => refresh());
+  }
+
+  Future<void> refresh() async {
+    if (_inFlight || !_connected) return;
+    if (ref.read(apiClientProvider).rateLimitRemaining > Duration.zero) return;
+    _inFlight = true;
+    try {
+      final p = await _api.player();
+      final prevUri = state.uri;
+      state = state.copyWith(playback: p);
+      if (_interval != _pollMs) {
+        _interval = _pollMs;
+        _restartTimer();
+      }
+      if (state.uri != null && state.uri != prevUri) unawaited(_refreshLiked([state.uri!]));
+      unawaited(_heartbeat());
+    } on Object catch (e) {
+      final err = ApiError.from(e, '');
+      if (err.isReauth) ref.invalidate(spotifyStatusProvider);
+      if (err.isRateLimited) {
+        _interval = (_interval * 2).clamp(_pollMs, _pollMaxMs);
+        _restartTimer();
+      }
+    } finally {
+      _inFlight = false;
+    }
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      state = state.copyWith(settings: await _api.listeningSettings());
+    } on Object {
+      // best effort
+    }
+  }
+
+  Future<void> _heartbeat() async {
+    final item = state.item;
+    final id = item?.str('id');
+    if (_heartbeatInFlight || id == null || item?.str('type') == 'episode') return;
+    if (_lastHeartbeatId != id) {
+      _lastHeartbeatId = id;
+      _autoQueued.clear();
+      _lastAutoQueueSeed = null;
+      _similarFetched.clear();
+      state = state.copyWith(featuresStatus: 'idle', clearFeatures: true, similar: const [], similarLoading: true);
+    }
+    _heartbeatInFlight = true;
+    try {
+      final r = await _api.heartbeat({
+        'spotify_id': id,
+        'progress_ms': state.progressMs,
+        'duration_ms': state.durationMs,
+        'is_playing': state.isPlaying,
+        'name': item!.str('name'),
+        'uri': item.str('uri'),
+        'album_name': item.at('album.name'),
+        'album_image_url': state.art,
+        'artists': item['artists'],
+      });
+      final s = r.obj('settings');
+      state = state.copyWith(
+        featuresStatus: r.text('features_status', 'idle'),
+        features: r.obj('features'),
+        settings: s == null ? null : {...?state.settings, ...s},
+      );
+      await _loadSimilar(id);
+      if (state.autoQueue) await _maybeAutoQueue(id);
+    } on Object {
+      // Heartbeat is best effort; the poll keeps working.
+    } finally {
+      _heartbeatInFlight = false;
+    }
+  }
+
+  Future<void> _loadSimilar(String seed, {bool force = false}) async {
+    if (!force && _similarFetched.contains(seed)) return;
+    state = state.copyWith(similarLoading: true);
+    try {
+      final items = await _api.similar(seed, limit: 10);
+      if (_lastHeartbeatId == seed) state = state.copyWith(similar: items);
+      if (items.isNotEmpty) _similarFetched.add(seed);
+    } on Object {
+      // retried on a later heartbeat
+    } finally {
+      state = state.copyWith(similarLoading: false);
+    }
+  }
+
+  Future<void> _maybeAutoQueue(String seed, {bool force = false}) async {
+    final settings = state.settings;
+    if (settings == null || !settings.flag('auto_queue_enabled') || _autoQueueRunning) return;
+    final alreadySeeded = _lastAutoQueueSeed == seed && _autoQueued.isNotEmpty;
+    _autoQueueRunning = true;
+    try {
+      var upcoming = <String>{};
+      var upcomingCount = 0;
+      try {
+        final q = await _api.queue();
+        state = state.copyWith(queue: q);
+        final list = q.list('queue');
+        upcomingCount = list.length;
+        upcoming = list.map((e) => e.str('uri')).whereType<String>().toSet();
+      } on Object {
+        // idle queue
+      }
+      if (alreadySeeded && !force && upcomingCount >= (settings.integer('auto_queue_min_upcoming') ?? 3)) return;
+      await _loadSimilar(seed, force: force);
+      final batch = settings.integer('auto_queue_batch') ?? 3;
+      var added = 0;
+      for (final s in state.similar) {
+        if (added >= batch) break;
+        final uri = s.obj('track')?.str('uri');
+        if (uri == null || _autoQueued.contains(uri) || upcoming.contains(uri)) continue;
+        await _api.addToQueue(uri, state.deviceId);
+        _autoQueued.add(uri);
+        added++;
+      }
+      if (added > 0) _lastAutoQueueSeed = seed;
+    } on Object catch (e) {
+      errors.add(ApiError.from(e, 'Unable to auto-queue a similar track').message);
+    } finally {
+      _autoQueueRunning = false;
+    }
+  }
+
+  Future<void> _refreshLiked(List<String> uris) async {
+    final unique = uris.toSet().toList();
+    for (var i = 0; i < unique.length; i += 50) {
+      final chunk = unique.sublist(i, (i + 50).clamp(0, unique.length));
+      try {
+        final r = await _api.libraryContains(chunk);
+        final next = {...state.liked};
+        for (var j = 0; j < chunk.length && j < r.length; j++) {
+          next[chunk[j]] = r[j];
+        }
+        state = state.copyWith(liked: next);
+      } on Object {
+        // best effort
+      }
+    }
+  }
+
+  Future<void> refreshLikedFor(Iterable<String> uris) => _refreshLiked(uris.toList());
+
+  Future<bool> _control(Future<void> Function() action, String fallback) async {
+    state = state.copyWith(busy: true);
+    try {
+      await action();
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await refresh();
+      return true;
+    } on Object catch (e) {
+      final err = ApiError.from(e, fallback);
+      if (err.isReauth) ref.invalidate(spotifyStatusProvider);
+      errors.add(err.message);
+      return false;
+    } finally {
+      state = state.copyWith(busy: false);
+    }
+  }
+
+  Future<bool> play([Json payload = const {}]) => _control(() => _api.play(payload), 'Unable to start playback');
+  Future<bool> playUri(String uri) => play({
+    'uris': [uri],
+  });
+  Future<bool> playContext(String contextUri, {String? offsetUri}) => play({
+    'context_uri': contextUri,
+    if (offsetUri != null) 'offset': {'uri': offsetUri},
+  });
+  Future<bool> pause() => _control(() => _api.pause(state.deviceId), 'Unable to pause');
+  Future<bool> toggle() => state.isPlaying ? pause() : play();
+  Future<bool> next() => _control(() => _api.next(state.deviceId), 'Unable to skip');
+  Future<bool> previous() => _control(() => _api.previous(state.deviceId), 'Unable to go previous');
+  Future<bool> seek(int ms) => _control(() => _api.seek(ms, state.deviceId), 'Unable to seek');
+  Future<bool> volume(double pct) =>
+      _control(() => _api.volume(pct.round().clamp(0, 100), state.deviceId), 'Unable to set volume');
+  Future<bool> transfer(String deviceId) => _control(() => _api.transfer(deviceId), 'Unable to transfer playback');
+  Future<bool> setShuffle(bool on) => _control(() => _api.shuffle(on, state.deviceId), 'Unable to update shuffle');
+  Future<bool> cycleRepeat() {
+    final next = switch (state.repeat) {
+      'off' => 'context',
+      'context' => 'track',
+      _ => 'off',
+    };
+    return _control(() => _api.repeat(next, state.deviceId), 'Unable to update repeat');
+  }
+
+  Future<bool> toggleLike([String? uri]) async {
+    final target = uri ?? state.uri;
+    if (target == null) return false;
+    final was = state.liked[target] ?? false;
+    state = state.copyWith(liked: {...state.liked, target: !was});
+    try {
+      if (was) {
+        await _api.removeLibrary([target]);
+      } else {
+        await _api.saveLibrary([target]);
+      }
+      return true;
+    } on Object catch (e) {
+      state = state.copyWith(liked: {...state.liked, target: was});
+      errors.add(ApiError.from(e, 'Unable to update library').message);
+      return false;
+    }
+  }
+
+  Future<bool> queueTrack(String uri) async {
+    try {
+      await _api.addToQueue(uri, state.deviceId);
+      return true;
+    } on Object catch (e) {
+      errors.add(ApiError.from(e, 'Unable to add to queue').message);
+      return false;
+    }
+  }
+
+  Future<Json?> fetchQueue() async {
+    try {
+      final q = await _api.queue();
+      state = state.copyWith(queue: q);
+      return q;
+    } on Object catch (e) {
+      errors.add(ApiError.from(e, 'Unable to load queue').message);
+      return null;
+    }
+  }
+
+  Future<bool> setAutoQueue(bool enabled) async {
+    try {
+      state = state.copyWith(settings: await _api.updateListeningSettings({'auto_queue_enabled': enabled}));
+      final seed = state.trackId;
+      if (enabled && seed != null) unawaited(_maybeAutoQueue(seed, force: true));
+      return true;
+    } on Object catch (e) {
+      errors.add(ApiError.from(e, 'Unable to update listening settings').message);
+      return false;
+    }
+  }
+}

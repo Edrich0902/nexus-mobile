@@ -1,0 +1,29 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+formatter:
+  page_width: 120
+
+analyzer:
+  exclude:
+    - lib/**/*.g.dart
+  language:
+    strict-casts: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    # Screens render API payloads directly; doc comments live where they add context.
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    # Widgets read top-down: build first, helpers after.
+    sort_constructors_first: false
+    always_put_required_named_parameters_first: false
+    flutter_style_todos: false
+    avoid_positional_boolean_parameters: false
+    avoid_catches_without_on_clauses: false
+    one_member_abstracts: false
+    # Fire-and-forget is the norm for button callbacks and router calls.
+    discarded_futures: false
+    prefer_constructors_over_static_methods: false
+    # Riverpod provider types are noisy and inferred correctly.
+    specify_nonobvious_property_types: false

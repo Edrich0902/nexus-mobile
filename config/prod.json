@@ -1,0 +1,6 @@
+{
+  "NEXUS_ENV": "prod",
+  "API_BASE_URL": "https://api.nexus.barforge.co.za",
+  "CLOUDINARY_CLOUD_NAME": "nexus-hub",
+  "SENTRY_DSN": ""
+}
