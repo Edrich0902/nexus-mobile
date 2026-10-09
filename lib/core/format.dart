@@ -36,3 +36,16 @@ String streamStamp(DateTime at, {DateTime? now}) {
 String plural(num n, String word, [String? many]) => '$n ${n == 1 ? word : (many ?? '${word}s')}';
 
 String compactNumber(num n) => NumberFormat.compact().format(n);
+
+/// 1536 → "1.5 KB". Null or NaN render as an em dash.
+String formatBytes(num? value) {
+  if (value == null || value.isNaN) return '—';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  var n = value.toDouble();
+  var i = 0;
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024;
+    i++;
+  }
+  return '${n.toStringAsFixed(i == 0 ? 0 : 1)} ${units[i]}';
+}

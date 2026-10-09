@@ -1,5 +1,13 @@
 import 'package:go_router/go_router.dart';
+import 'package:nexus_mobile/features/admin/admin_screen.dart';
 import 'package:nexus_mobile/features/capture/capture_screen.dart';
+import 'package:nexus_mobile/features/code/github_pull_create_screen.dart';
+import 'package:nexus_mobile/features/code/github_pull_screen.dart';
+import 'package:nexus_mobile/features/code/github_pulls_screen.dart';
+import 'package:nexus_mobile/features/code/github_repo_screen.dart';
+import 'package:nexus_mobile/features/code/github_screen.dart';
+import 'package:nexus_mobile/features/code/github_search_screen.dart';
+import 'package:nexus_mobile/features/code/github_stats_screen.dart';
 import 'package:nexus_mobile/features/collections/brewery_screen.dart';
 import 'package:nexus_mobile/features/collections/collection_index.dart';
 import 'package:nexus_mobile/features/collections/drink_detail.dart';
@@ -22,6 +30,7 @@ import 'package:nexus_mobile/features/listening/spotify_library_screen.dart';
 import 'package:nexus_mobile/features/listening/spotify_playlist.dart';
 import 'package:nexus_mobile/features/listening/spotify_search_screen.dart';
 import 'package:nexus_mobile/features/listening/spotify_stats_screen.dart';
+import 'package:nexus_mobile/features/media/media_vault_screen.dart';
 import 'package:nexus_mobile/features/profile/profile_screen.dart';
 import 'package:nexus_mobile/features/profile/sessions_screen.dart';
 import 'package:nexus_mobile/features/sports/sport_screen.dart';
@@ -155,6 +164,40 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
+  GoRoute(
+    path: '/github',
+    builder: (_, _) => const GithubScreen(),
+    routes: [
+      GoRoute(path: 'pulls', builder: (_, _) => const GithubPullsScreen()),
+      GoRoute(path: 'search', builder: (_, _) => const GithubSearchScreen()),
+      GoRoute(path: 'stats', builder: (_, _) => const GithubStatsScreen()),
+      GoRoute(
+        path: ':owner/:repo',
+        builder: (_, s) =>
+            GithubRepoScreen(owner: s.pathParameters['owner'] ?? '', repo: s.pathParameters['repo'] ?? ''),
+        routes: [
+          GoRoute(
+            path: 'pulls/new',
+            builder: (_, s) => GithubPullCreateScreen(
+              owner: s.pathParameters['owner'] ?? '',
+              repo: s.pathParameters['repo'] ?? '',
+              head: s.uri.queryParameters['head'],
+            ),
+          ),
+          GoRoute(
+            path: 'pulls/:number',
+            builder: (_, s) => GithubPullScreen(
+              owner: s.pathParameters['owner'] ?? '',
+              repo: s.pathParameters['repo'] ?? '',
+              number: _id(s, 'number'),
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+  GoRoute(path: '/media', builder: (_, _) => const MediaVaultScreen()),
+  GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
   GoRoute(
     path: '/profile',
     builder: (_, _) => const ProfileScreen(),
