@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -238,6 +239,8 @@ class TrackList extends ConsumerStatefulWidget {
 }
 
 class _TrackListState extends ConsumerState<TrackList> {
+  var _uris = const <String>[];
+
   @override
   void initState() {
     super.initState();
@@ -247,11 +250,15 @@ class _TrackListState extends ConsumerState<TrackList> {
   @override
   void didUpdateWidget(TrackList old) {
     super.didUpdateWidget(old);
-    if (old.tracks != widget.tracks) _refreshLiked();
+    _refreshLiked();
   }
 
+  /// Parents rebuild these lists on every player poll, so only a change in
+  /// the actual tracks may reach the API.
   void _refreshLiked() {
-    final uris = widget.tracks.map((t) => t.str('uri')).nonNulls;
+    final uris = widget.tracks.map((t) => t.str('uri')).nonNulls.toList();
+    if (listEquals(uris, _uris)) return;
+    _uris = uris;
     if (uris.isNotEmpty) unawaited(Future.microtask(() => ref.read(playerProvider.notifier).refreshLikedFor(uris)));
   }
 

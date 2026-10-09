@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class PhoneBar extends ConsumerWidget {
     final inTabs = Nav.phoneTabs.any((d) => Nav.isActive(d, location));
 
     return ClipRect(
-      child: BackdropFilter(
+      child: BackdropFilter.grouped(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           padding: EdgeInsets.only(bottom: mq.padding.bottom),
@@ -247,51 +248,60 @@ class _Strip extends ConsumerWidget {
   }
 }
 
-/// Spotify-green three-bar equaliser.
+/// Spotify-green three-bar equaliser. Steps like a hardware meter on a
+/// timer (about 7 frames a second) instead of a vsync ticker, so a playing
+/// track doesn't keep the whole screen, blurs included, redrawing at 60fps.
 class NxEqualiser extends StatefulWidget {
   const NxEqualiser({super.key});
+
+  static const step = Duration(milliseconds: 140);
 
   @override
   State<NxEqualiser> createState() => _NxEqualiserState();
 }
 
-class _NxEqualiserState extends State<NxEqualiser> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+class _NxEqualiserState extends State<NxEqualiser> {
+  static const _levels = <double>[5, 9, 14, 11, 7, 12, 4, 10, 13, 6];
+  static const _offsets = [0, 4, 7];
+  Timer? _timer;
+  var _frame = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
-      _c.stop();
-    } else if (!_c.isAnimating) {
-      _c.repeat();
+    final still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || !TickerMode.of(context);
+    if (still) {
+      _timer?.cancel();
+      _timer = null;
+    } else {
+      _timer ??= Timer.periodic(NxEqualiser.step, (_) => setState(() => _frame++));
     }
   }
 
   @override
   void dispose() {
-    _c.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (_, _) => Row(
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: RepaintBoundary(
+      child: SizedBox(
+        height: 14,
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            for (final phase in const [0.0, .7, .4])
+            for (final offset in _offsets)
               Container(
                 width: 3,
-                height: 4 + 10 * (1 - ((_c.value + phase) % 1 * 2 - 1).abs()),
+                height: _levels[(_frame + offset) % _levels.length],
                 margin: const EdgeInsets.symmetric(horizontal: 1),
                 decoration: BoxDecoration(color: const Color(0xFF1ED760), borderRadius: BorderRadius.circular(2)),
               ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }

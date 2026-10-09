@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
+import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
@@ -41,8 +42,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _nowTimer = Timer.periodic(const Duration(seconds: 30), (_) => ref.invalidate(nowProvider));
-    _activityTimer = Timer.periodic(const Duration(minutes: 2), (_) => ref.invalidate(activityProvider));
+    _nowTimer = foregroundPoll(const Duration(seconds: 30), () => ref.invalidate(nowProvider));
+    _activityTimer = foregroundPoll(const Duration(minutes: 2), () => ref.invalidate(activityProvider));
     _lifecycle = AppLifecycleListener(onResume: () => ref.invalidate(nowProvider));
   }
 

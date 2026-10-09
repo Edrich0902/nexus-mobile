@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
+import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/palettes.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -499,7 +500,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
   void initState() {
     super.initState();
     unawaited(ref.read(playerProvider.notifier).fetchQueue());
-    _refresh = Timer.periodic(const Duration(seconds: 10), (_) => ref.read(playerProvider.notifier).fetchQueue());
+    _refresh = foregroundPoll(const Duration(seconds: 10), () => ref.read(playerProvider.notifier).fetchQueue());
   }
 
   @override

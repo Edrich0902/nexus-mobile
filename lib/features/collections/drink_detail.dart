@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
+import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/core/media/pick_image.dart';
 import 'package:nexus_mobile/design/art_ambient.dart';
@@ -53,9 +54,7 @@ class _DrinkDetailScreenState extends ConsumerState<DrinkDetailScreen> {
       _poll = null;
       return;
     }
-    _poll ??= Timer.periodic(_pollEvery, (_) {
-      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) ref.invalidate(drinkProvider(_key));
-    });
+    _poll ??= foregroundPoll(_pollEvery, () => ref.invalidate(drinkProvider(_key)));
   }
 
   @override

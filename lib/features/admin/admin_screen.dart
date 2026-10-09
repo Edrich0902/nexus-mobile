@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
+import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
 import 'package:nexus_mobile/design/profile.dart';
@@ -81,7 +82,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
   @override
   void initState() {
     super.initState();
-    _poll = Timer.periodic(const Duration(seconds: 12), (_) => ref.invalidate(adminOverviewProvider));
+    _poll = foregroundPoll(const Duration(seconds: 12), () => ref.invalidate(adminOverviewProvider));
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -76,12 +78,34 @@ class NxLiveDot extends StatefulWidget {
   State<NxLiveDot> createState() => _NxLiveDotState();
 }
 
+/// Rests solid and gives a short breath every [period]; a continuous pulse
+/// would keep the screen redrawing every frame for as long as it's visible.
 class _NxLiveDotState extends State<NxLiveDot> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))
-    ..repeat(reverse: true);
+  static const period = Duration(milliseconds: 2800);
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+  late final Animation<double> _opacity = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween<double>(begin: 1, end: .3).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+    TweenSequenceItem(tween: Tween<double>(begin: .3, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
+  ]).animate(_c);
+  Timer? _timer;
+  var _still = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || !TickerMode.of(context);
+    if (_still) {
+      _timer?.cancel();
+      _timer = null;
+      _c.value = 0;
+    } else {
+      _timer ??= Timer.periodic(period, (_) => _c.forward(from: 0));
+    }
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _c.dispose();
     super.dispose();
   }
@@ -93,8 +117,10 @@ class _NxLiveDotState extends State<NxLiveDot> with SingleTickerProviderStateMix
       height: widget.size,
       decoration: BoxDecoration(shape: BoxShape.circle, color: widget.color ?? context.nx.acc),
     );
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return dot;
-    return FadeTransition(opacity: Tween<double>(begin: 1, end: .35).animate(_c), child: dot);
+    if (_still) return dot;
+    return RepaintBoundary(
+      child: FadeTransition(opacity: _opacity, child: dot),
+    );
   }
 }
 

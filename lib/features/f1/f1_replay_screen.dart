@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
+import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/f1/f1.dart';
 import 'package:nexus_mobile/features/f1/f1_track_replay.dart';
@@ -71,7 +72,7 @@ class _F1ReplayScreenState extends ConsumerState<F1ReplayScreen> {
     _poll?.cancel();
     _poll = null;
     if (!mounted || (_status != 'pending' && !_partial)) return;
-    _poll = Timer.periodic(const Duration(seconds: 4), (_) async {
+    _poll = foregroundPoll(const Duration(seconds: 4), () async {
       final String? next;
       try {
         next = await _api.replayStatus(widget.sessionKey);

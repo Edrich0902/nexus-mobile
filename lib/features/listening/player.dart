@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
@@ -93,17 +94,29 @@ final playerProvider = NotifierProvider<PlayerController, PlayerState>(PlayerCon
 class PlayerController extends Notifier<PlayerState> {
   static const _pollMs = 8000;
   static const _pollMaxMs = 20000;
+  static const _similarRetry = Duration(seconds: 8);
+  static const _resumeGap = Duration(seconds: 3);
+  static const _likedFresh = Duration(minutes: 10);
+  static const _likedChunk = 50;
 
   Timer? _timer;
   int _interval = _pollMs;
   bool _inFlight = false;
   bool _heartbeatInFlight = false;
   bool _foreground = true;
+  DateTime? _lastRefreshAt;
   String? _lastHeartbeatId;
   String? _lastAutoQueueSeed;
   bool _autoQueueRunning = false;
   final _autoQueued = <String>{};
+  final _autoQueueEmpty = <String>{};
   final _similarFetched = <String>{};
+  final _similarAttemptAt = <String, DateTime>{};
+  Future<void>? _similarLoad;
+  Future<Json?>? _queueLoad;
+  String? _similarLoadSeed;
+  final _likedCheckedAt = <String, DateTime>{};
+  final _likedInFlight = <String>{};
 
   /// Surfaces player errors to the shell's toast host.
   final errors = StreamController<String>.broadcast();
@@ -127,12 +140,19 @@ class PlayerController extends Notifier<PlayerState> {
     return const PlayerState();
   }
 
-  void _syncConnection() => _connected ? _start() : _stop();
+  /// Status reloads (pull-to-refresh, reauth checks) must not restart a
+  /// running poll, or a failing call would re-fire immediately in a loop.
+  void _syncConnection() {
+    if (!_connected) return _stop();
+    if (_timer == null) _start();
+  }
 
   bool get _connected => ref.read(spotifyStatusProvider).value?.flag('connected') ?? false;
 
   void _onLifecycle(AppLifecycleState lifecycle) {
-    _foreground = lifecycle == AppLifecycleState.resumed;
+    final foreground = lifecycle == AppLifecycleState.resumed;
+    if (foreground == _foreground) return;
+    _foreground = foreground;
     if (_foreground && _connected) {
       _start();
     } else {
@@ -143,14 +163,16 @@ class PlayerController extends Notifier<PlayerState> {
 
   void _start() {
     if (!_foreground) return;
-    unawaited(refresh());
-    unawaited(_loadSettings());
+    final last = _lastRefreshAt;
+    if (last == null || DateTime.now().difference(last) >= _resumeGap) unawaited(refresh());
+    if (state.settings == null) unawaited(_loadSettings());
     _restartTimer();
   }
 
   void _stop() {
     _timer?.cancel();
     _timer = null;
+    _likedCheckedAt.clear();
     if (state.playback != null) state = state.copyWith(clearPlayback: true);
   }
 
@@ -163,6 +185,7 @@ class PlayerController extends Notifier<PlayerState> {
     if (_inFlight || !_connected) return;
     if (ref.read(apiClientProvider).rateLimitRemaining > Duration.zero) return;
     _inFlight = true;
+    _lastRefreshAt = DateTime.now();
     try {
       final p = await _api.player();
       final prevUri = state.uri;
@@ -171,7 +194,7 @@ class PlayerController extends Notifier<PlayerState> {
         _interval = _pollMs;
         _restartTimer();
       }
-      if (state.uri != null && state.uri != prevUri) unawaited(_refreshLiked([state.uri!]));
+      if (state.uri != null && state.uri != prevUri) unawaited(_refreshLiked([state.uri!], force: true));
       unawaited(_heartbeat());
     } on Object catch (e) {
       final err = ApiError.from(e, '');
@@ -201,8 +224,10 @@ class PlayerController extends Notifier<PlayerState> {
     if (_lastHeartbeatId != id) {
       _lastHeartbeatId = id;
       _autoQueued.clear();
+      _autoQueueEmpty.clear();
       _lastAutoQueueSeed = null;
       _similarFetched.clear();
+      _similarAttemptAt.clear();
       state = state.copyWith(featuresStatus: 'idle', clearFeatures: true, similar: const [], similarLoading: true);
     }
     _heartbeatInFlight = true;
@@ -218,13 +243,17 @@ class PlayerController extends Notifier<PlayerState> {
         'album_image_url': state.art,
         'artists': item['artists'],
       });
+      final status = r.text('features_status', 'idle');
+      final features = r.obj('features');
       final s = r.obj('settings');
-      state = state.copyWith(
-        featuresStatus: r.text('features_status', 'idle'),
-        features: r.obj('features'),
-        settings: s == null ? null : {...?state.settings, ...s},
-      );
-      await _loadSimilar(id);
+      final settings = s == null ? null : {...?state.settings, ...s};
+      final featuresJustReady = status == 'ready' && state.featuresStatus != 'ready';
+      if (status != state.featuresStatus ||
+          !mapEquals(features, state.features) ||
+          (settings != null && !mapEquals(settings, state.settings))) {
+        state = state.copyWith(featuresStatus: status, features: features, settings: settings);
+      }
+      await _loadSimilar(id, force: featuresJustReady);
       if (state.autoQueue) await _maybeAutoQueue(id);
     } on Object {
       // Heartbeat is best effort; the poll keeps working.
@@ -233,23 +262,42 @@ class PlayerController extends Notifier<PlayerState> {
     }
   }
 
+  /// Joins an in-flight request; non-empty results stick until the track
+  /// changes and empty / failed ones retry at most every [_similarRetry].
   Future<void> _loadSimilar(String seed, {bool force = false}) async {
+    if (_similarLoad != null && _similarLoadSeed == seed && !force) return _similarLoad;
     if (!force && _similarFetched.contains(seed)) return;
-    state = state.copyWith(similarLoading: true);
-    try {
-      final items = await _api.similar(seed, limit: 10);
-      if (_lastHeartbeatId == seed) state = state.copyWith(similar: items);
-      if (items.isNotEmpty) _similarFetched.add(seed);
-    } on Object {
-      // retried on a later heartbeat
-    } finally {
-      state = state.copyWith(similarLoading: false);
-    }
+    final last = _similarAttemptAt[seed];
+    if (!force && last != null && DateTime.now().difference(last) < _similarRetry) return;
+    _similarAttemptAt[seed] = DateTime.now();
+    _similarLoadSeed = seed;
+    if (!state.similarLoading) state = state.copyWith(similarLoading: true);
+    final load = _similarLoad = () async {
+      try {
+        final items = await _api.similar(seed, limit: 10);
+        if (_lastHeartbeatId == seed) state = state.copyWith(similar: items);
+        if (items.isNotEmpty) _similarFetched.add(seed);
+      } on Object {
+        // retried on a later heartbeat, after the throttle
+      } finally {
+        if (_similarLoadSeed == seed) {
+          _similarLoad = null;
+          _similarLoadSeed = null;
+          if (state.similarLoading) state = state.copyWith(similarLoading: false);
+        }
+      }
+    }();
+    return load;
   }
 
   Future<void> _maybeAutoQueue(String seed, {bool force = false}) async {
     final settings = state.settings;
     if (settings == null || !settings.flag('auto_queue_enabled') || _autoQueueRunning) return;
+    if (force) {
+      _autoQueueEmpty.remove(seed);
+    } else if (_autoQueueEmpty.contains(seed)) {
+      return;
+    }
     final alreadySeeded = _lastAutoQueueSeed == seed && _autoQueued.isNotEmpty;
     _autoQueueRunning = true;
     try {
@@ -266,6 +314,10 @@ class PlayerController extends Notifier<PlayerState> {
       }
       if (alreadySeeded && !force && upcomingCount >= (settings.integer('auto_queue_min_upcoming') ?? 3)) return;
       await _loadSimilar(seed, force: force);
+      if (state.similar.isEmpty) {
+        _autoQueueEmpty.add(seed);
+        return;
+      }
       final batch = settings.integer('auto_queue_batch') ?? 3;
       var added = 0;
       for (final s in state.similar) {
@@ -284,24 +336,44 @@ class PlayerController extends Notifier<PlayerState> {
     }
   }
 
-  Future<void> _refreshLiked(List<String> uris) async {
-    final unique = uris.toSet().toList();
-    for (var i = 0; i < unique.length; i += 50) {
-      final chunk = unique.sublist(i, (i + 50).clamp(0, unique.length));
-      try {
-        final r = await _api.libraryContains(chunk);
-        final next = {...state.liked};
-        for (var j = 0; j < chunk.length && j < r.length; j++) {
-          next[chunk[j]] = r[j];
+  /// Liked state for [uris], skipping any checked in the last [_likedFresh]
+  /// or already in flight; [force] re-checks (the current track, once per
+  /// change, like web).
+  Future<void> _refreshLiked(Iterable<String> uris, {bool force = false}) async {
+    if (!_connected) return;
+    final now = DateTime.now();
+    final wanted = <String>{
+      for (final u in uris)
+        if (u.isNotEmpty &&
+            !_likedInFlight.contains(u) &&
+            (force || !(_likedCheckedAt[u]?.isAfter(now.subtract(_likedFresh)) ?? false)))
+          u,
+    }.toList();
+    if (wanted.isEmpty) return;
+    _likedInFlight.addAll(wanted);
+    try {
+      for (var i = 0; i < wanted.length; i += _likedChunk) {
+        final chunk = wanted.sublist(i, (i + _likedChunk).clamp(0, wanted.length));
+        try {
+          final r = await _api.libraryContains(chunk);
+          if (!ref.mounted) return;
+          final checked = DateTime.now();
+          Map<String, bool>? next;
+          for (var j = 0; j < chunk.length && j < r.length; j++) {
+            _likedCheckedAt[chunk[j]] = checked;
+            if (state.liked[chunk[j]] != r[j]) (next ??= {...state.liked})[chunk[j]] = r[j];
+          }
+          if (next != null) state = state.copyWith(liked: next);
+        } on Object {
+          // best effort; unmarked URIs retry on the next request
         }
-        state = state.copyWith(liked: next);
-      } on Object {
-        // best effort
       }
+    } finally {
+      _likedInFlight.removeAll(wanted);
     }
   }
 
-  Future<void> refreshLikedFor(Iterable<String> uris) => _refreshLiked(uris.toList());
+  Future<void> refreshLikedFor(Iterable<String> uris) => _refreshLiked(uris);
 
   Future<bool> _control(Future<void> Function() action, String fallback) async {
     state = state.copyWith(busy: true);
@@ -350,6 +422,7 @@ class PlayerController extends Notifier<PlayerState> {
     final target = uri ?? state.uri;
     if (target == null) return false;
     final was = state.liked[target] ?? false;
+    _likedCheckedAt[target] = DateTime.now();
     state = state.copyWith(liked: {...state.liked, target: !was});
     try {
       if (was) {
@@ -375,7 +448,7 @@ class PlayerController extends Notifier<PlayerState> {
     }
   }
 
-  Future<Json?> fetchQueue() async {
+  Future<Json?> fetchQueue() => _queueLoad ??= () async {
     try {
       final q = await _api.queue();
       state = state.copyWith(queue: q);
@@ -383,8 +456,10 @@ class PlayerController extends Notifier<PlayerState> {
     } on Object catch (e) {
       errors.add(ApiError.from(e, 'Unable to load queue').message);
       return null;
+    } finally {
+      _queueLoad = null;
     }
-  }
+  }();
 
   Future<bool> setAutoQueue(bool enabled) async {
     try {

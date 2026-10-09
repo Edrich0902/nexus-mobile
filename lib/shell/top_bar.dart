@@ -37,7 +37,7 @@ class TopBar extends ConsumerWidget {
     final parent = sectionDestination(location);
 
     return ClipRect(
-      child: BackdropFilter(
+      child: BackdropFilter.grouped(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           height: mq.padding.top + topBarHeight,

@@ -26,6 +26,9 @@ class AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<AppShell> {
   StreamSubscription<String>? _playerErrors;
 
+  /// Lets both bar blurs share one backdrop read instead of two per frame.
+  final _backdrop = BackdropKey();
+
   @override
   void initState() {
     super.initState();
@@ -66,12 +69,15 @@ class _AppShellState extends ConsumerState<AppShell> {
       body: ShellInsets(
         top: top,
         bottom: bottom,
-        child: Stack(
-          children: [
-            Positioned.fill(child: widget.child),
-            Positioned(left: 0, right: 0, top: 0, child: TopBar(location: widget.location)),
-            Positioned(left: 0, right: 0, bottom: 0, child: PhoneBar(location: widget.location)),
-          ],
+        child: BackdropGroup(
+          backdropKey: _backdrop,
+          child: Stack(
+            children: [
+              Positioned.fill(child: widget.child),
+              Positioned(left: 0, right: 0, top: 0, child: TopBar(location: widget.location)),
+              Positioned(left: 0, right: 0, bottom: 0, child: PhoneBar(location: widget.location)),
+            ],
+          ),
         ),
       ),
     );
