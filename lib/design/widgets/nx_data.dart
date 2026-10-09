@@ -104,7 +104,7 @@ class NxRadar extends StatelessWidget {
         curve: NxMotion.ease,
         builder: (_, t, _) => CustomPaint(
           size: Size.square(size),
-          painter: _RadarPainter(values: values, grow: t, ring: c.tint2, spoke: c.line, acc: c.acc),
+          painter: _RadarPainter(values: values, grow: t, grid: c.ink, acc: c.acc),
         ),
       ),
     );
@@ -112,12 +112,14 @@ class NxRadar extends StatelessWidget {
 }
 
 class _RadarPainter extends CustomPainter {
-  _RadarPainter({required this.values, required this.grow, required this.ring, required this.spoke, required this.acc});
+  _RadarPainter({required this.values, required this.grow, required this.grid, required this.acc});
 
   final List<double> values;
   final double grow;
-  final Color ring;
-  final Color spoke;
+
+  /// Ink the grid is drawn from. Print panels are saturated mid-tones where
+  /// the page's hairline alphas vanish, so the grid uses stronger ones.
+  final Color grid;
   final Color acc;
 
   @override
@@ -131,13 +133,18 @@ class _RadarPainter extends CustomPainter {
       return center + Offset(math.cos(a), math.sin(a)) * r;
     }
 
-    final ringPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..color = ring;
-    for (final f in [.33, .66, 1.0]) {
-      canvas.drawPath(Path()..addPolygon([for (var i = 0; i < n; i++) at(i, radius * f)], true), ringPaint);
+    for (final (f, alpha) in [(.33, .22), (.66, .22), (1.0, .36)]) {
+      canvas.drawPath(
+        Path()..addPolygon([for (var i = 0; i < n; i++) at(i, radius * f)], true),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..color = grid.withValues(alpha: alpha),
+      );
     }
-    final spokePaint = Paint()..color = spoke;
+    final spokePaint = Paint()
+      ..strokeWidth = 1
+      ..color = grid.withValues(alpha: .18);
     for (var i = 0; i < n; i++) {
       canvas.drawLine(center, at(i, radius), spokePaint);
     }
@@ -156,7 +163,8 @@ class _RadarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RadarPainter old) => old.grow != grow || old.values != values || old.acc != acc;
+  bool shouldRepaint(_RadarPainter old) =>
+      old.grow != grow || old.values != values || old.acc != acc || old.grid != grid;
 }
 
 /// Ranked row with optional artwork (web NxRankList item).
