@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
@@ -52,34 +53,60 @@ class NxImage extends ConsumerWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: LayoutBuilder(
-        builder: (context, box) {
-          if (source == null || source.isEmpty) return fallback();
-          final dpr = MediaQuery.devicePixelRatioOf(context);
-          final width = box.maxWidth.isFinite ? box.maxWidth : 480.0;
-          final v = variant ?? MediaVariant.forBox(width: width, devicePixelRatio: dpr, avatar: avatar);
-          final resolved = delivery.url(source, v);
-          if (resolved == null) return fallback();
-          final cacheW = box.maxWidth.isFinite ? (box.maxWidth * dpr).round() : null;
-          return Semantics(
-            image: true,
-            label: semanticLabel,
-            excludeSemantics: semanticLabel == null,
-            child: CachedNetworkImage(
-              imageUrl: resolved,
-              fit: fit,
-              width: double.infinity,
-              height: double.infinity,
-              memCacheWidth: cacheW,
-              fadeInDuration: const Duration(milliseconds: 250),
-              placeholder: (_, _) => ColoredBox(color: background ?? c.amb2),
-              errorWidget: (_, _, _) => fallback(),
-            ),
-          );
-        },
+      child: _FillsGivenBox(
+        child: LayoutBuilder(
+          builder: (context, box) {
+            if (source == null || source.isEmpty) return fallback();
+            final dpr = MediaQuery.devicePixelRatioOf(context);
+            final width = box.maxWidth.isFinite ? box.maxWidth : 480.0;
+            final v = variant ?? MediaVariant.forBox(width: width, devicePixelRatio: dpr, avatar: avatar);
+            final resolved = delivery.url(source, v);
+            if (resolved == null) return fallback();
+            final cacheW = box.maxWidth.isFinite ? (box.maxWidth * dpr).round() : null;
+            return Semantics(
+              image: true,
+              label: semanticLabel,
+              excludeSemantics: semanticLabel == null,
+              child: CachedNetworkImage(
+                imageUrl: resolved,
+                fit: fit,
+                width: double.infinity,
+                height: double.infinity,
+                memCacheWidth: cacheW,
+                fadeInDuration: const Duration(milliseconds: 250),
+                placeholder: (_, _) => ColoredBox(color: background ?? c.amb2),
+                errorWidget: (_, _, _) => fallback(),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
+}
+
+/// Network art has no natural size: it fills whatever box it's given. Saying
+/// so (zero intrinsics) keeps [NxImage] usable inside IntrinsicHeight rows,
+/// where the LayoutBuilder underneath can't answer intrinsic queries.
+class _FillsGivenBox extends SingleChildRenderObjectWidget {
+  const _FillsGivenBox({required super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderFillsGivenBox();
+}
+
+class _RenderFillsGivenBox extends RenderProxyBox {
+  @override
+  double computeMinIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMinIntrinsicHeight(double width) => 0;
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => 0;
 }
 
 /// Full-screen, pinch-to-zoom artwork (web NexusImage `previewable`).

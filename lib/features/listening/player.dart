@@ -119,15 +119,15 @@ class PlayerController extends Notifier<PlayerState> {
         _timer?.cancel();
         unawaited(errors.close());
       })
-      ..listen(spotifyStatusProvider, (_, next) {
-        if (next.value?.flag('connected') ?? false) {
-          _start();
-        } else {
-          _stop();
-        }
-      }, fireImmediately: true);
+      ..listen(spotifyStatusProvider, (_, _) => _syncConnection());
+    // `state` is unreadable until build returns, so the first sync waits a tick.
+    scheduleMicrotask(() {
+      if (ref.mounted) _syncConnection();
+    });
     return const PlayerState();
   }
+
+  void _syncConnection() => _connected ? _start() : _stop();
 
   bool get _connected => ref.read(spotifyStatusProvider).value?.flag('connected') ?? false;
 
@@ -187,7 +187,8 @@ class PlayerController extends Notifier<PlayerState> {
 
   Future<void> _loadSettings() async {
     try {
-      state = state.copyWith(settings: await _api.listeningSettings());
+      final settings = await _api.listeningSettings();
+      state = state.copyWith(settings: settings);
     } on Object {
       // best effort
     }
@@ -387,7 +388,8 @@ class PlayerController extends Notifier<PlayerState> {
 
   Future<bool> setAutoQueue(bool enabled) async {
     try {
-      state = state.copyWith(settings: await _api.updateListeningSettings({'auto_queue_enabled': enabled}));
+      final settings = await _api.updateListeningSettings({'auto_queue_enabled': enabled});
+      state = state.copyWith(settings: settings);
       final seed = state.trackId;
       if (enabled && seed != null) unawaited(_maybeAutoQueue(seed, force: true));
       return true;

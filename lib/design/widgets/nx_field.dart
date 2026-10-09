@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
@@ -72,22 +75,21 @@ class NxField extends StatelessWidget with BentoItem {
             if (label != null || aside != null)
               Opacity(
                 opacity: .72,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        label ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: NxText.sans(size: 12, weight: FontWeight.w600, color: fg),
-                      ),
-                    ),
-                    if (aside != null)
-                      Text(
-                        aside!,
-                        style: NxText.sans(size: 12, weight: FontWeight.w600, color: fg),
-                      ),
-                  ],
+                child: _LabelRow(
+                  label: Text(
+                    label ?? '',
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: NxText.sans(size: 12, weight: FontWeight.w600, color: fg),
+                  ),
+                  aside: Text(
+                    aside ?? '',
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: NxText.sans(size: 12, weight: FontWeight.w600, color: fg),
+                  ),
                 ),
               ),
             if (child != null) ...[
@@ -146,5 +148,104 @@ class NxField extends StatelessWidget with BentoItem {
 
     if (onTap == null) return content;
     return NxPressable(onTap: onTap!, child: content);
+  }
+}
+
+enum _LabelSlot { label, aside }
+
+/// Label left, aside right. When both don't fit, the label keeps its width
+/// (up to ~half the row) and the aside ellipsises into what's left. A render
+/// object rather than a LayoutBuilder so it still answers the bento's
+/// intrinsic-height queries.
+class _LabelRow extends SlottedMultiChildRenderObjectWidget<_LabelSlot, RenderBox> {
+  const _LabelRow({required this.label, required this.aside});
+
+  final Widget label;
+  final Widget aside;
+
+  @override
+  Iterable<_LabelSlot> get slots => _LabelSlot.values;
+
+  @override
+  Widget childForSlot(_LabelSlot slot) => switch (slot) {
+    _LabelSlot.label => label,
+    _LabelSlot.aside => aside,
+  };
+
+  @override
+  _RenderLabelRow createRenderObject(BuildContext context) => _RenderLabelRow();
+}
+
+class _RenderLabelRow extends RenderBox with SlottedContainerRenderObjectMixin<_LabelSlot, RenderBox> {
+  static const _gap = 10.0;
+
+  RenderBox get _label => childForSlot(_LabelSlot.label)!;
+  RenderBox get _aside => childForSlot(_LabelSlot.aside)!;
+
+  (double, double) _widths(double max) {
+    final available = math.max<double>(0, max - _gap);
+    final label = _label.getMaxIntrinsicWidth(double.infinity);
+    final aside = _aside.getMaxIntrinsicWidth(double.infinity);
+    if (label + aside <= available) return (label, aside);
+    final labelWidth = math.min(label, math.max(available - aside, available * .5));
+    return (labelWidth, available - labelWidth);
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      _label.getMaxIntrinsicWidth(height) + _gap + _aside.getMaxIntrinsicWidth(height);
+
+  @override
+  double computeMinIntrinsicHeight(double width) => computeMaxIntrinsicHeight(width);
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      math.max(_label.getMaxIntrinsicHeight(double.infinity), _aside.getMaxIntrinsicHeight(double.infinity));
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final (lw, aw) = _widths(constraints.maxWidth);
+    final height = math.max(
+      _label.getDryLayout(BoxConstraints(maxWidth: lw)).height,
+      _aside.getDryLayout(BoxConstraints(maxWidth: aw)).height,
+    );
+    return constraints.constrain(Size(constraints.maxWidth, height));
+  }
+
+  @override
+  void performLayout() {
+    final (lw, aw) = _widths(constraints.maxWidth);
+    _label.layout(BoxConstraints(maxWidth: lw), parentUsesSize: true);
+    _aside.layout(BoxConstraints(maxWidth: aw), parentUsesSize: true);
+    final height = math.max(_label.size.height, _aside.size.height);
+    size = constraints.constrain(Size(constraints.maxWidth, height));
+    (_label.parentData! as BoxParentData).offset = Offset(0, (size.height - _label.size.height) / 2);
+    (_aside.parentData! as BoxParentData).offset = Offset(
+      size.width - _aside.size.width,
+      (size.height - _aside.size.height) / 2,
+    );
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    for (final child in children) {
+      context.paintChild(child, offset + (child.parentData! as BoxParentData).offset);
+    }
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    for (final child in children) {
+      final hit = result.addWithPaintOffset(
+        offset: (child.parentData! as BoxParentData).offset,
+        position: position,
+        hitTest: (result, local) => child.hitTest(result, position: local),
+      );
+      if (hit) return true;
+    }
+    return false;
   }
 }
