@@ -430,15 +430,31 @@ class NxChipRow extends StatelessWidget {
 
 /// Segmented pill nav (web NxPillNav / NxPillGroup).
 class NxPillNav<T> extends StatelessWidget {
-  const NxPillNav({required this.items, required this.value, required this.onChanged, super.key});
+  const NxPillNav({
+    required this.items,
+    required this.value,
+    required this.onChanged,
+    this.expand = false,
+    super.key,
+  });
 
   final List<(T, String)> items;
   final T value;
   final ValueChanged<T> onChanged;
 
+  /// Equal segments across the full width with a sliding selection, for a
+  /// handful of short labels; otherwise the pills scroll horizontally.
+  final bool expand;
+
+  void _select(T v) {
+    HapticFeedback.selectionClick();
+    onChanged(v);
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
+    if (expand) return _segmented(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Container(
@@ -452,10 +468,7 @@ class NxPillNav<T> extends StatelessWidget {
                 selected: v == value,
                 button: true,
                 child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    onChanged(v);
-                  },
+                  onTap: () => _select(v),
                   child: AnimatedContainer(
                     duration: NxMotion.hover,
                     curve: NxMotion.ease,
@@ -473,6 +486,63 @@ class NxPillNav<T> extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _segmented(BuildContext context) {
+    final c = context.nx;
+    final selected = items.indexWhere((e) => e.$1 == value);
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: c.tint, borderRadius: BorderRadius.circular(NxRadius.pill)),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final width = box.maxWidth / items.length;
+          return Stack(
+            children: [
+              if (selected >= 0)
+                AnimatedPositioned(
+                  duration: NxTiming.base,
+                  curve: NxMotion.ease,
+                  left: selected * width,
+                  top: 0,
+                  bottom: 0,
+                  width: width,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(color: c.ink, borderRadius: BorderRadius.circular(NxRadius.pill)),
+                  ),
+                ),
+              Row(
+                children: [
+                  for (final (i, (v, label)) in items.indexed)
+                    Expanded(
+                      child: Semantics(
+                        selected: i == selected,
+                        button: true,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _select(v),
+                          child: Center(
+                            child: AnimatedDefaultTextStyle(
+                              duration: NxTiming.base,
+                              style: NxText.sans(
+                                size: 13,
+                                weight: FontWeight.w600,
+                                color: i == selected ? c.amb : c.ink2,
+                              ),
+                              child: Text(label, maxLines: 1, overflow: TextOverflow.fade, softWrap: false),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

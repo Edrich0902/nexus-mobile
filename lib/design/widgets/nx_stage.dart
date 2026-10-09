@@ -19,6 +19,7 @@ class NxStage extends StatelessWidget {
     this.lede,
     this.ledeWidget,
     this.progress,
+    this.progressRail,
     this.visual,
     this.art = StageArt.square,
     this.actions = const [],
@@ -34,6 +35,10 @@ class NxStage extends StatelessWidget {
   final String? lede;
   final Widget? ledeWidget;
   final double? progress;
+
+  /// Replaces the [progress] rail with a live one (e.g. a playing track);
+  /// [progress] eases in once, which suits static values only.
+  final Widget? progressRail;
   final Widget? visual;
   final StageArt art;
   final List<Widget> actions;
@@ -115,7 +120,9 @@ class NxStage extends StatelessWidget {
             )
           else if (lede != null)
             rise(Text(lede!, style: NxText.sans(size: 15.5, color: c.ink2, height: 1.4))),
-          if (progress != null)
+          if (progressRail != null)
+            rise(Padding(padding: const EdgeInsets.only(top: 18), child: progressRail))
+          else if (progress != null)
             rise(
               Padding(
                 padding: const EdgeInsets.only(top: 18),

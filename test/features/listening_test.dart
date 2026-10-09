@@ -23,7 +23,6 @@ void main() {
     final api = FakeApi({
       'GET /spotify/status': (_, _) => status.future,
       'GET /spotify/player': (_, _) => {'is_playing': false},
-      'GET /spotify/listening/settings': (_, _) => {'auto_queue_enabled': true},
     });
     final container = ProviderContainer(
       overrides: [apiClientProvider.overrideWithValue(api), authProvider.overrideWith(SignedInAuth.new)],
@@ -33,20 +32,17 @@ void main() {
     addTearDown(sub.close);
 
     await _ticks();
-    expect(container.read(playerProvider).settings, isNull);
     expect(api.calls, ['GET /spotify/status']);
 
     status.complete({'connected': true});
     await _ticks();
-    expect(api.calls, containsAll(['GET /spotify/player', 'GET /spotify/listening/settings']));
-    expect(container.read(playerProvider).autoQueue, isTrue);
+    expect(api.calls, ['GET /spotify/status', 'GET /spotify/player']);
   });
 
-  test('player already connected at build still loads settings', () async {
+  test('player already connected at build polls once and stamps the sync time', () async {
     final api = FakeApi({
       'GET /spotify/status': (_, _) => {'connected': true},
       'GET /spotify/player': (_, _) => {'is_playing': false},
-      'GET /spotify/listening/settings': (_, _) => {'auto_queue_enabled': true},
     });
     final container = ProviderContainer(
       overrides: [apiClientProvider.overrideWithValue(api), authProvider.overrideWith(SignedInAuth.new)],
@@ -57,7 +53,25 @@ void main() {
     addTearDown(sub.close);
 
     await _ticks();
-    expect(container.read(playerProvider).autoQueue, isTrue);
+    expect(api.calls.where((c) => c == 'GET /spotify/player'), hasLength(1));
+    expect(container.read(playerProvider).syncedAt, isNotNull);
+  });
+
+  test('positionAt extrapolates while playing and holds when paused', () {
+    final at = DateTime(2026, 1, 1, 12);
+    PlayerState state(bool playing) => PlayerState(
+      playback: {
+        'is_playing': playing,
+        'progress_ms': 10000,
+        'item': {'duration_ms': 30000},
+      },
+      syncedAt: at,
+    );
+
+    expect(state(true).positionAt(at.add(const Duration(seconds: 5))), 15000);
+    expect(state(true).positionAt(at.add(const Duration(minutes: 5))), 30000);
+    expect(state(false).positionAt(at.add(const Duration(seconds: 5))), 10000);
+    expect(const PlayerState().positionAt(at), 0);
   });
 
   test('splitTrackTitle pulls the accent from brackets or a dash', () {

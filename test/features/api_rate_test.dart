@@ -22,7 +22,6 @@ Future<void> _ticks([int n = 10]) async {
 Map<String, Handler> _spotify({Handler? contains}) => {
   'GET /spotify/status': (_, _) => {'connected': true},
   'GET /spotify/player': (_, _) => {'is_playing': false},
-  'GET /spotify/listening/settings': (_, _) => const <String, dynamic>{},
   _contains:
       contains ??
       (q, _) => {
@@ -150,7 +149,7 @@ void main() {
     }
 
     expect(api.calls.where((c) => c == 'GET /spotify/player'), hasLength(1));
-    expect(api.calls.where((c) => c == 'GET /spotify/listening/settings'), hasLength(1));
+    expect(api.calls.where((c) => c.contains('/spotify/listening/settings')), isEmpty);
   });
 
   test('palette lookups never repeat for URLs in flight or waiting out their backoff', () async {

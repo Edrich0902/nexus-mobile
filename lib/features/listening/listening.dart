@@ -154,18 +154,20 @@ Future<void> syncSpotify(BuildContext context, WidgetRef ref) async {
 
 // ── Shared widgets ─────────────────────────────────────────────────────────
 
-/// Now / Search / Library / Stats pills plus the queue (web ListeningNav).
+/// Now / Search / Library / Stats as one full-width segmented control (web
+/// ListeningNav). The Now stage carries its own queue button, so the queue
+/// shortcut sits beside the nav on the other pages only.
 class ListeningNav extends StatelessWidget {
-  const ListeningNav({required this.value, this.trailing = const [], super.key});
+  const ListeningNav({required this.value, super.key});
 
   final String value;
-  final List<Widget> trailing;
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
       Expanded(
         child: NxPillNav<String>(
+          expand: true,
           items: const [
             ('/spotify', 'Now'),
             ('/spotify/search', 'Search'),
@@ -176,8 +178,10 @@ class ListeningNav extends StatelessWidget {
           onChanged: (to) => to == value ? null : context.go(to),
         ),
       ),
-      NxIconButton(LucideIcons.listMusic, tooltip: 'Queue', onPressed: () => showQueueSheet(context)),
-      ...trailing,
+      if (value != '/spotify') ...[
+        const SizedBox(width: 6),
+        NxIconButton(LucideIcons.listMusic, tooltip: 'Queue', onPressed: () => showQueueSheet(context)),
+      ],
     ],
   );
 }

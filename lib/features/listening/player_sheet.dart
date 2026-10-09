@@ -10,6 +10,7 @@ import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/palettes.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/listening/listening.dart';
+import 'package:nexus_mobile/features/listening/live_position.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/spotify_api.dart';
 
@@ -30,36 +31,16 @@ class PlayerPanel extends ConsumerStatefulWidget {
 }
 
 class _PlayerPanelState extends ConsumerState<PlayerPanel> {
-  Timer? _tick;
-  DateTime _syncedAt = DateTime.now();
-  int _baseMs = 0;
   double? _dragging;
 
-  @override
-  void initState() {
-    super.initState();
-    _tick = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      if (mounted && ref.read(playerProvider).isPlaying && _dragging == null) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _tick?.cancel();
-    super.dispose();
-  }
-
-  int _progress(PlayerState p) {
-    if (!p.isPlaying) return p.progressMs;
-    return (_baseMs + DateTime.now().difference(_syncedAt).inMilliseconds).clamp(0, p.durationMs);
+  Future<void> _seek(double ms) async {
+    setState(() => _dragging = ms);
+    await ref.read(playerProvider.notifier).seek(ms.round());
+    if (mounted) setState(() => _dragging = null);
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(playerProvider.select((p) => (p.progressMs, p.uri, p.isPlaying)), (_, next) {
-      _baseMs = next.$1;
-      _syncedAt = DateTime.now();
-    });
     final p = ref.watch(playerProvider);
     final ctl = ref.read(playerProvider.notifier);
     final ambient = ref.watch(artAmbientProvider(p.art));
@@ -75,7 +56,6 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
       );
     }
 
-    final progress = _dragging ?? _progress(p).toDouble();
     return AmbientOverride(
       ambient: ambient,
       child: ListView(
@@ -121,35 +101,40 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
             ],
           ),
           const SizedBox(height: 10),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 3,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape: SliderComponentShape.noOverlay,
-              activeTrackColor: c.acc,
-              inactiveTrackColor: c.tint2,
-              thumbColor: c.acc,
-            ),
-            child: Slider(
-              value: progress.clamp(0, (p.durationMs == 0 ? 1 : p.durationMs).toDouble()),
-              max: (p.durationMs == 0 ? 1 : p.durationMs).toDouble(),
-              semanticFormatterCallback: (v) => formatMs(v.round()),
-              onChanged: (v) => setState(() => _dragging = v),
-              onChangeEnd: (v) {
-                setState(() => _dragging = null);
-                _baseMs = v.round();
-                _syncedAt = DateTime.now();
-                ctl.seek(v.round());
-              },
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Text(formatMs(progress.round()), style: NxText.mono(color: c.ink3)),
-              const Spacer(),
-              Text(formatMs(p.durationMs), style: NxText.mono(color: c.ink3)),
-            ],
+          LiveTrackPosition(
+            builder: (context, position, duration) {
+              final max = (duration == 0 ? 1 : duration).toDouble();
+              final value = (_dragging ?? position.toDouble()).clamp(0, max).toDouble();
+              return Column(
+                children: [
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      overlayShape: SliderComponentShape.noOverlay,
+                      activeTrackColor: c.acc,
+                      inactiveTrackColor: c.tint2,
+                      thumbColor: c.acc,
+                    ),
+                    child: Slider(
+                      value: value,
+                      max: max,
+                      semanticFormatterCallback: (v) => formatMs(v.round()),
+                      onChanged: (v) => setState(() => _dragging = v),
+                      onChangeEnd: _seek,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text(formatMs(value.round()), style: NxText.mono(color: c.ink3)),
+                      const Spacer(),
+                      Text(formatMs(duration), style: NxText.mono(color: c.ink3)),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
           Row(
@@ -167,22 +152,12 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
                 size: 52,
                 onPressed: p.busy ? null : ctl.previous,
               ),
-              SizedBox(
-                width: 72,
-                height: 72,
-                child: Material(
-                  color: c.acc,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: p.busy ? null : ctl.toggle,
-                    child: Semantics(
-                      button: true,
-                      label: p.isPlaying ? 'Pause' : 'Play',
-                      child: Icon(p.isPlaying ? LucideIcons.pause : LucideIcons.play, size: 30, color: c.accInk),
-                    ),
-                  ),
-                ),
+              PlayToggle(
+                playing: p.isPlaying,
+                size: 72,
+                color: c.acc,
+                iconColor: c.accInk,
+                onPressed: p.busy ? null : ctl.toggle,
               ),
               NxIconButton(LucideIcons.skipForward, tooltip: 'Next', size: 52, onPressed: p.busy ? null : ctl.next),
               NxIconButton(
@@ -229,20 +204,65 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          NxListRow(
-            label: 'Auto-queue similar tracks',
-            icon: LucideIcons.sparkles,
-            trailing: Switch(value: p.autoQueue, onChanged: ctl.setAutoQueue),
-          ),
-          if (p.similar.isNotEmpty || p.similarLoading) ...[
-            const NxSectionHeader('Sounds like this', top: 18),
-            if (p.similar.isEmpty)
-              const Padding(padding: EdgeInsets.all(12), child: NxSkeleton(height: 48))
-            else
-              for (final s in p.similar.take(8)) TrackRow(track: s.obj('track') ?? const {}, reason: s.str('reason')),
-          ],
         ],
+      ),
+    );
+  }
+}
+
+/// Round play / pause button; the icon cross-fades between states.
+class PlayToggle extends StatelessWidget {
+  const PlayToggle({
+    required this.playing,
+    required this.onPressed,
+    this.size = 50,
+    this.color,
+    this.iconColor,
+    super.key,
+  });
+
+  final bool playing;
+  final VoidCallback? onPressed;
+  final double size;
+  final Color? color;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.nx;
+    return Semantics(
+      button: true,
+      label: playing ? 'Pause' : 'Play',
+      excludeSemantics: true,
+      child: IgnorePointer(
+        ignoring: onPressed == null,
+        child: NxPressable(
+          onTap: () => onPressed?.call(),
+          scale: .92,
+          child: AnimatedOpacity(
+            duration: NxTiming.fast,
+            opacity: onPressed == null ? .55 : 1,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(color: color ?? c.ink, shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: AnimatedSwitcher(
+                duration: NxTiming.fast,
+                transitionBuilder: (child, a) => ScaleTransition(
+                  scale: Tween<double>(begin: .6, end: 1).animate(a),
+                  child: FadeTransition(opacity: a, child: child),
+                ),
+                child: Icon(
+                  playing ? LucideIcons.pause : LucideIcons.play,
+                  key: ValueKey(playing),
+                  size: size * .42,
+                  color: iconColor ?? c.amb,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

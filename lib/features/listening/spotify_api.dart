@@ -101,9 +101,4 @@ class SpotifyApi {
   Future<List<Json>> suggestions() async => asJson(await _api.get('$_b/suggestions')).list('items');
   Future<Json> heartbeat(Json payload) async => asJson(await _api.post('$_b/listening/heartbeat', data: payload));
   Future<Json> listeningProfile() async => asJson(await _api.get('$_b/listening/profile'));
-  Future<Json> listeningSettings() async => asJson(await _api.get('$_b/listening/settings'));
-  Future<Json> updateListeningSettings(Json payload) async =>
-      asJson(await _api.put('$_b/listening/settings', data: payload));
-  Future<List<Json>> similar(String seed, {int limit = 12}) async =>
-      asJson(await _api.get('$_b/recommendations/similar', query: {'seed': seed, 'limit': limit})).list('items');
 }

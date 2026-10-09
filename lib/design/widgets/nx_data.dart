@@ -266,8 +266,16 @@ class NxHourBars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
-    final max = values.isEmpty ? 1 : values.reduce(math.max).toDouble();
-    final peak = values.isEmpty ? -1 : values.indexOf(values.reduce(math.max));
+    // Not `reduce(math.max)`: callers pass List<int> as List<num>, and the
+    // tear-off's (num, num) => num then fails the runtime (int, int) => int check.
+    var max = 0.0;
+    var peak = -1;
+    for (var i = 0; i < values.length; i++) {
+      if (values[i] > max) {
+        max = values[i].toDouble();
+        peak = i;
+      }
+    }
     return Column(
       children: [
         SizedBox(

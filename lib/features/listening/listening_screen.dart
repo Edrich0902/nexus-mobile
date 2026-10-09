@@ -11,6 +11,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/collections/collection_fields.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
 import 'package:nexus_mobile/features/listening/listening.dart';
+import 'package:nexus_mobile/features/listening/live_position.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/player_sheet.dart';
 import 'package:nexus_mobile/features/listening/spotify_api.dart';
@@ -117,45 +118,26 @@ class ListeningScreen extends ConsumerWidget {
             eyebrow: hero == null
                 ? 'Listening'
                 : hero.live
-                ? '${player.isPlaying ? 'Now playing' : 'Paused'}${device == null ? '' : ' · $device'}'
+                ? '${player.isPlaying ? 'Playing' : 'Paused'}${device == null ? '' : ' on $device'}'
                 : 'Last played · ${relativeTime(hero.when)}',
             title: title,
             accent: accent,
-            progress: (hero?.live ?? false) && player.durationMs > 0 ? player.progress : null,
+            progressRail: (hero?.live ?? false) ? const _TrackRail() : null,
             visual: hero?.art == null ? Icon(LucideIcons.headphones, size: 48, color: c.ink3) : NxImage(url: hero!.art),
             ledeWidget: hero == null ? null : _ArtistLinks(artists: hero.artists, album: hero.album),
             lede: hero == null ? 'Nothing has played yet. Start something on Spotify and it shows up here.' : null,
             actions: [
-              if (hero != null)
-                NxButton(
-                  hero.live ? (player.isPlaying ? 'Pause' : 'Resume') : 'Play again',
-                  icon: hero.live && player.isPlaying ? LucideIcons.pause : LucideIcons.play,
-                  onPressed: player.busy
-                      ? null
-                      : () {
-                          final ctl = ref.read(playerProvider.notifier);
-                          if (hero.live) {
-                            unawaited(ctl.toggle());
-                          } else if (hero.uri case final uri?) {
-                            unawaited(ctl.playUri(uri));
-                          }
-                        },
-                ),
-              NxButton(
-                'Queue',
-                icon: LucideIcons.listMusic,
-                variant: NxButtonVariant.secondary,
-                onPressed: () => showQueueSheet(context),
+              _StageControls(
+                live: hero?.live ?? false,
+                uri: hero?.uri,
+                onDisconnect: () => _disconnect(context, ref),
               ),
-              if (hero?.uri case final uri?)
-                NxIconButton(
-                  LucideIcons.plus,
-                  tooltip: 'Add to playlist',
-                  filled: true,
-                  onPressed: () => showAddToPlaylistSheet(context, uri),
-                ),
             ],
           ),
+          if (player.hasTrack) ...[
+            const NxSectionHeader('Track character', top: 26),
+            NxPanel(child: TrackCharacter(player: player)),
+          ],
           const SizedBox(height: 22),
           CollectionFields(
             section: SectionKey.listening,
@@ -201,17 +183,7 @@ class ListeningScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 22),
-          ListeningNav(
-            value: '/spotify',
-            trailing: [
-              NxIconButton(
-                LucideIcons.refreshCw,
-                tooltip: 'Sync with Spotify',
-                onPressed: () => syncSpotify(context, ref),
-              ),
-              NxIconButton(LucideIcons.unplug, tooltip: 'Disconnect', onPressed: () => _disconnect(context, ref)),
-            ],
-          ),
+          const ListeningNav(value: '/spotify'),
           if (status.value?.flag('needs_reauth') ?? false) ...[
             const SizedBox(height: 18),
             NxPanel(
@@ -246,17 +218,6 @@ class ListeningScreen extends ConsumerWidget {
               tracks: [for (final r in recent) r.obj('track')!],
               meta: (i, _) => relativeTime(DateTime.tryParse(recent[i].text('played_at'))),
             ),
-          if (player.hasTrack) ...[
-            const NxSectionHeader('Track character'),
-            NxPanel(child: TrackCharacter(player: player)),
-          ],
-          if (player.similar.isNotEmpty) ...[
-            const NxSectionHeader('Similar to this'),
-            TrackList(
-              tracks: [for (final s in player.similar.take(6)) s.obj('track') ?? const {}],
-              meta: (i, _) => player.similar[i].str('reason'),
-            ),
-          ],
           NxSectionHeader(
             'Playlists',
             actionLabel: 'New playlist',
@@ -343,6 +304,111 @@ class _ArtistLinks extends StatelessWidget {
     );
   }
 }
+
+/// The stage rail for the live track, with elapsed and total time.
+class _TrackRail extends StatelessWidget {
+  const _TrackRail();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.nx;
+    final time = NxText.mono(size: 11, color: c.ink3);
+    return LiveTrackPosition(
+      builder: (context, position, duration) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          NxProgressRail(value: duration == 0 ? 0 : position / duration, color: c.ink),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(formatMs(position), style: time),
+              const Spacer(),
+              Text(formatMs(duration), style: time),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Transport on the left (or "Play again" for the last track), track and
+/// account actions on the right (mockup: prev · play · next, then extras).
+class _StageControls extends ConsumerWidget {
+  const _StageControls({required this.live, required this.uri, required this.onDisconnect});
+
+  final bool live;
+  final String? uri;
+  final VoidCallback onDisconnect;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final (playing, busy) = ref.watch(playerProvider.select((p) => (p.isPlaying, p.busy)));
+    final ctl = ref.read(playerProvider.notifier);
+    final track = uri;
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          if (live) ...[
+            NxIconButton(LucideIcons.skipBack, tooltip: 'Previous', onPressed: busy ? null : ctl.previous),
+            const SizedBox(width: 6),
+            PlayToggle(playing: playing, onPressed: busy ? null : ctl.toggle),
+            const SizedBox(width: 6),
+            NxIconButton(LucideIcons.skipForward, tooltip: 'Next', onPressed: busy ? null : ctl.next),
+          ] else if (track != null)
+            NxButton('Play again', icon: LucideIcons.play, onPressed: busy ? null : () => ctl.playUri(track)),
+          const Spacer(),
+          if (track != null)
+            NxIconButton(
+              LucideIcons.plus,
+              tooltip: 'Add to playlist',
+              onPressed: () => showAddToPlaylistSheet(context, track),
+            ),
+          NxIconButton(LucideIcons.listMusic, tooltip: 'Queue', onPressed: () => showQueueSheet(context)),
+          NxIconButton(
+            LucideIcons.ellipsis,
+            tooltip: 'More',
+            onPressed: () => _showSpotifyMenu(context, ref, onDisconnect),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _showSpotifyMenu(BuildContext context, WidgetRef ref, VoidCallback onDisconnect) => showNxSheet<void>(
+  context,
+  title: 'Spotify',
+  builder: (sheet) {
+    void run(VoidCallback action) {
+      Navigator.of(sheet).pop();
+      action();
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        NxListRow(
+          label: 'Play on another device',
+          icon: LucideIcons.speaker,
+          onTap: () => run(() => showDevicesSheet(context)),
+        ),
+        NxListRow(
+          label: 'Sync with Spotify',
+          icon: LucideIcons.refreshCw,
+          onTap: () => run(() => syncSpotify(context, ref)),
+        ),
+        NxListRow(
+          label: 'Disconnect Spotify',
+          icon: LucideIcons.unplug,
+          destructive: true,
+          onTap: () => run(onDisconnect),
+        ),
+      ],
+    );
+  },
+);
 
 const _keys = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
 

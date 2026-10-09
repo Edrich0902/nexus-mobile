@@ -9,6 +9,7 @@ import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
+import 'package:nexus_mobile/features/listening/live_position.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/player_sheet.dart';
 import 'package:nexus_mobile/shell/more_sheet.dart';
@@ -233,11 +234,13 @@ class _Strip extends ConsumerWidget {
                 left: -12,
                 right: -6,
                 bottom: -6,
-                child: NxProgressRail(
-                  value: p.progress,
-                  height: 2,
-                  color: const Color(0xFF1ED760),
-                  track: Colors.transparent,
+                child: LiveTrackPosition(
+                  builder: (_, position, duration) => NxProgressRail(
+                    value: duration == 0 ? 0 : position / duration,
+                    height: 2,
+                    color: const Color(0xFF1ED760),
+                    track: Colors.transparent,
+                  ),
                 ),
               ),
             ],

@@ -14,6 +14,8 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/activity.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
 import 'package:nexus_mobile/features/home/hub_api.dart';
+import 'package:nexus_mobile/features/listening/live_position.dart';
+import 'package:nexus_mobile/features/listening/player.dart';
 
 const _momentAmbient = <String, Ambient>{
   'music': NxMoments.music,
@@ -140,15 +142,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _NowStage extends StatelessWidget {
+class _NowStage extends ConsumerWidget {
   const _NowStage({required this.now});
 
   final Json now;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final image = now.str('image');
     final actions = now.list('actions');
+    final subject = now.obj('subject');
+    final playingId = ref.watch(playerProvider.select((p) => p.trackId));
+    final liveTrack =
+        now.str('moment') == 'music' &&
+        subject?.str('type') == 'spotify_track' &&
+        playingId != null &&
+        '${subject?['id']}' == playingId;
     return NxStage(
       key: ValueKey(now.str('moment')),
       eyebrow: now.str('eyebrow'),
@@ -157,6 +166,12 @@ class _NowStage extends StatelessWidget {
       accent: now.str('accent'),
       lede: now.str('lede'),
       progress: now.number('progress'),
+      progressRail: liveTrack
+          ? LiveTrackPosition(
+              builder: (context, position, duration) =>
+                  NxProgressRail(value: duration == 0 ? 0 : position / duration, color: context.nx.ink),
+            )
+          : null,
       visual: image == null ? null : NxImage(url: image),
       actions: [
         for (final a in actions)

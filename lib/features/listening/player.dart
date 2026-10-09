@@ -22,10 +22,8 @@ class PlayerState {
     this.busy = false,
     this.featuresStatus = 'idle',
     this.features,
-    this.similar = const [],
-    this.similarLoading = false,
-    this.settings,
     this.queue,
+    this.syncedAt,
   });
 
   final Json? playback;
@@ -33,10 +31,10 @@ class PlayerState {
   final bool busy;
   final String featuresStatus;
   final Json? features;
-  final List<Json> similar;
-  final bool similarLoading;
-  final Json? settings;
   final Json? queue;
+
+  /// When [playback] was fetched; anchors the local position clock.
+  final DateTime? syncedAt;
 
   Json? get item => playback?.obj('item');
   bool get isPlaying => playback?.flag('is_playing') ?? false;
@@ -54,12 +52,21 @@ class PlayerState {
   int get progressMs => playback?.integer('progress_ms') ?? 0;
   int get durationMs => item?.integer('duration_ms') ?? 0;
   double get progress => durationMs == 0 ? 0 : (progressMs / durationMs).clamp(0, 1);
+
+  /// Playback position at [now], extrapolated from the last poll while playing
+  /// (web useSpotifyProgress).
+  int positionAt(DateTime now) {
+    final at = syncedAt;
+    if (!isPlaying || at == null) return progressMs;
+    final ms = progressMs + now.difference(at).inMilliseconds;
+    return durationMs > 0 ? ms.clamp(0, durationMs) : ms;
+  }
+
   Json? get device => playback?.obj('device');
   String? get deviceId => device?.str('id');
   bool get shuffle => playback?.flag('shuffle_state') ?? false;
   String get repeat => playback?.text('repeat_state', 'off') ?? 'off';
   bool get isLiked => uri != null && (liked[uri] ?? false);
-  bool get autoQueue => settings?.flag('auto_queue_enabled') ?? false;
 
   PlayerState copyWith({
     Json? playback,
@@ -69,32 +76,27 @@ class PlayerState {
     String? featuresStatus,
     Json? features,
     bool clearFeatures = false,
-    List<Json>? similar,
-    bool? similarLoading,
-    Json? settings,
     Json? queue,
+    DateTime? syncedAt,
   }) => PlayerState(
     playback: clearPlayback ? null : (playback ?? this.playback),
     liked: liked ?? this.liked,
     busy: busy ?? this.busy,
     featuresStatus: featuresStatus ?? this.featuresStatus,
     features: clearFeatures ? null : (features ?? this.features),
-    similar: similar ?? this.similar,
-    similarLoading: similarLoading ?? this.similarLoading,
-    settings: settings ?? this.settings,
     queue: queue ?? this.queue,
+    syncedAt: syncedAt ?? this.syncedAt,
   );
 }
 
 /// One app-wide player (web spotify.store): polls every 8s while the app is
 /// foregrounded and Spotify is connected, backs off to 20s on 429, sends the
-/// listening heartbeat, keeps like-state and runs auto-queue.
+/// listening heartbeat (track character) and keeps like-state.
 final playerProvider = NotifierProvider<PlayerController, PlayerState>(PlayerController.new);
 
 class PlayerController extends Notifier<PlayerState> {
   static const _pollMs = 8000;
   static const _pollMaxMs = 20000;
-  static const _similarRetry = Duration(seconds: 8);
   static const _resumeGap = Duration(seconds: 3);
   static const _likedFresh = Duration(minutes: 10);
   static const _likedChunk = 50;
@@ -106,15 +108,7 @@ class PlayerController extends Notifier<PlayerState> {
   bool _foreground = true;
   DateTime? _lastRefreshAt;
   String? _lastHeartbeatId;
-  String? _lastAutoQueueSeed;
-  bool _autoQueueRunning = false;
-  final _autoQueued = <String>{};
-  final _autoQueueEmpty = <String>{};
-  final _similarFetched = <String>{};
-  final _similarAttemptAt = <String, DateTime>{};
-  Future<void>? _similarLoad;
   Future<Json?>? _queueLoad;
-  String? _similarLoadSeed;
   final _likedCheckedAt = <String, DateTime>{};
   final _likedInFlight = <String>{};
 
@@ -165,7 +159,6 @@ class PlayerController extends Notifier<PlayerState> {
     if (!_foreground) return;
     final last = _lastRefreshAt;
     if (last == null || DateTime.now().difference(last) >= _resumeGap) unawaited(refresh());
-    if (state.settings == null) unawaited(_loadSettings());
     _restartTimer();
   }
 
@@ -189,7 +182,7 @@ class PlayerController extends Notifier<PlayerState> {
     try {
       final p = await _api.player();
       final prevUri = state.uri;
-      state = state.copyWith(playback: p);
+      state = state.copyWith(playback: p, syncedAt: DateTime.now());
       if (_interval != _pollMs) {
         _interval = _pollMs;
         _restartTimer();
@@ -208,27 +201,13 @@ class PlayerController extends Notifier<PlayerState> {
     }
   }
 
-  Future<void> _loadSettings() async {
-    try {
-      final settings = await _api.listeningSettings();
-      state = state.copyWith(settings: settings);
-    } on Object {
-      // best effort
-    }
-  }
-
   Future<void> _heartbeat() async {
     final item = state.item;
     final id = item?.str('id');
     if (_heartbeatInFlight || id == null || item?.str('type') == 'episode') return;
     if (_lastHeartbeatId != id) {
       _lastHeartbeatId = id;
-      _autoQueued.clear();
-      _autoQueueEmpty.clear();
-      _lastAutoQueueSeed = null;
-      _similarFetched.clear();
-      _similarAttemptAt.clear();
-      state = state.copyWith(featuresStatus: 'idle', clearFeatures: true, similar: const [], similarLoading: true);
+      state = state.copyWith(featuresStatus: 'idle', clearFeatures: true);
     }
     _heartbeatInFlight = true;
     try {
@@ -245,94 +224,13 @@ class PlayerController extends Notifier<PlayerState> {
       });
       final status = r.text('features_status', 'idle');
       final features = r.obj('features');
-      final s = r.obj('settings');
-      final settings = s == null ? null : {...?state.settings, ...s};
-      final featuresJustReady = status == 'ready' && state.featuresStatus != 'ready';
-      if (status != state.featuresStatus ||
-          !mapEquals(features, state.features) ||
-          (settings != null && !mapEquals(settings, state.settings))) {
-        state = state.copyWith(featuresStatus: status, features: features, settings: settings);
+      if (status != state.featuresStatus || !mapEquals(features, state.features)) {
+        state = state.copyWith(featuresStatus: status, features: features);
       }
-      await _loadSimilar(id, force: featuresJustReady);
-      if (state.autoQueue) await _maybeAutoQueue(id);
     } on Object {
       // Heartbeat is best effort; the poll keeps working.
     } finally {
       _heartbeatInFlight = false;
-    }
-  }
-
-  /// Joins an in-flight request; non-empty results stick until the track
-  /// changes and empty / failed ones retry at most every [_similarRetry].
-  Future<void> _loadSimilar(String seed, {bool force = false}) async {
-    if (_similarLoad != null && _similarLoadSeed == seed && !force) return _similarLoad;
-    if (!force && _similarFetched.contains(seed)) return;
-    final last = _similarAttemptAt[seed];
-    if (!force && last != null && DateTime.now().difference(last) < _similarRetry) return;
-    _similarAttemptAt[seed] = DateTime.now();
-    _similarLoadSeed = seed;
-    if (!state.similarLoading) state = state.copyWith(similarLoading: true);
-    final load = _similarLoad = () async {
-      try {
-        final items = await _api.similar(seed, limit: 10);
-        if (_lastHeartbeatId == seed) state = state.copyWith(similar: items);
-        if (items.isNotEmpty) _similarFetched.add(seed);
-      } on Object {
-        // retried on a later heartbeat, after the throttle
-      } finally {
-        if (_similarLoadSeed == seed) {
-          _similarLoad = null;
-          _similarLoadSeed = null;
-          if (state.similarLoading) state = state.copyWith(similarLoading: false);
-        }
-      }
-    }();
-    return load;
-  }
-
-  Future<void> _maybeAutoQueue(String seed, {bool force = false}) async {
-    final settings = state.settings;
-    if (settings == null || !settings.flag('auto_queue_enabled') || _autoQueueRunning) return;
-    if (force) {
-      _autoQueueEmpty.remove(seed);
-    } else if (_autoQueueEmpty.contains(seed)) {
-      return;
-    }
-    final alreadySeeded = _lastAutoQueueSeed == seed && _autoQueued.isNotEmpty;
-    _autoQueueRunning = true;
-    try {
-      var upcoming = <String>{};
-      var upcomingCount = 0;
-      try {
-        final q = await _api.queue();
-        state = state.copyWith(queue: q);
-        final list = q.list('queue');
-        upcomingCount = list.length;
-        upcoming = list.map((e) => e.str('uri')).whereType<String>().toSet();
-      } on Object {
-        // idle queue
-      }
-      if (alreadySeeded && !force && upcomingCount >= (settings.integer('auto_queue_min_upcoming') ?? 3)) return;
-      await _loadSimilar(seed, force: force);
-      if (state.similar.isEmpty) {
-        _autoQueueEmpty.add(seed);
-        return;
-      }
-      final batch = settings.integer('auto_queue_batch') ?? 3;
-      var added = 0;
-      for (final s in state.similar) {
-        if (added >= batch) break;
-        final uri = s.obj('track')?.str('uri');
-        if (uri == null || _autoQueued.contains(uri) || upcoming.contains(uri)) continue;
-        await _api.addToQueue(uri, state.deviceId);
-        _autoQueued.add(uri);
-        added++;
-      }
-      if (added > 0) _lastAutoQueueSeed = seed;
-    } on Object catch (e) {
-      errors.add(ApiError.from(e, 'Unable to auto-queue a similar track').message);
-    } finally {
-      _autoQueueRunning = false;
     }
   }
 
@@ -460,17 +358,4 @@ class PlayerController extends Notifier<PlayerState> {
       _queueLoad = null;
     }
   }();
-
-  Future<bool> setAutoQueue(bool enabled) async {
-    try {
-      final settings = await _api.updateListeningSettings({'auto_queue_enabled': enabled});
-      state = state.copyWith(settings: settings);
-      final seed = state.trackId;
-      if (enabled && seed != null) unawaited(_maybeAutoQueue(seed, force: true));
-      return true;
-    } on Object catch (e) {
-      errors.add(ApiError.from(e, 'Unable to update listening settings').message);
-      return false;
-    }
-  }
 }

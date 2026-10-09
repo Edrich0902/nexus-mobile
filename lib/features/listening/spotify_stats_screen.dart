@@ -130,7 +130,7 @@ class _SpotifyStatsScreenState extends ConsumerState<SpotifyStatsScreen> {
         ],
       ),
       const SizedBox(height: 22),
-      NxPillNav<String>(items: _ranges, value: _range, onChanged: (v) => setState(() => _range = v)),
+      NxPillNav<String>(expand: true, items: _ranges, value: _range, onChanged: (v) => setState(() => _range = v)),
       const NxSectionHeader('Top artists', top: 22),
       if (topArtists.isEmpty)
         empty('No top artists for this range yet.')
