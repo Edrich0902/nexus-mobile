@@ -2,5 +2,12 @@
   "NEXUS_ENV": "prod",
   "API_BASE_URL": "https://api.nexus.barforge.co.za",
   "CLOUDINARY_CLOUD_NAME": "nexus-hub",
-  "SENTRY_DSN": ""
+  "SENTRY_DSN": "",
+  "WEB_HOST": "nexus.barforge.co.za",
+  "FIREBASE_PROJECT_ID": "",
+  "FIREBASE_SENDER_ID": "",
+  "FIREBASE_ANDROID_APP_ID": "",
+  "FIREBASE_ANDROID_API_KEY": "",
+  "FIREBASE_IOS_APP_ID": "",
+  "FIREBASE_IOS_API_KEY": ""
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
+import 'package:nexus_mobile/core/auth/auth.dart';
 
 String? _tz;
 
@@ -47,3 +48,9 @@ String? searchItemPath(Json item) {
     _ => null,
   };
 }
+
+/// The single most relevant "moment" (music, race, tonight's bottle, greeting).
+final nowProvider = FutureProvider<Json>((ref) async {
+  if (ref.watch(authProvider) is! SignedIn) return const {};
+  return ref.watch(hubApiProvider).now();
+});

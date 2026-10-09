@@ -42,6 +42,13 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="nexus" android:host="open" />
             </intent-filter>
+            <!-- App links: same paths as the web app (needs /.well-known/assetlinks.json). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="nexus.barforge.co.za" />
+            </intent-filter>
         </activity>
 
         <!-- Spotify / GitHub OAuth return: nexus://oauth/... -->
@@ -56,6 +63,55 @@
             </intent-filter>
         </activity>
 
+        <!-- Home-screen widgets (data from lib/features/home/home_widgets.dart). -->
+        <receiver
+            android:name=".widgets.ListeningWidget"
+            android:exported="false"
+            android:label="@string/widget_listening">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_listening_info" />
+        </receiver>
+        <receiver
+            android:name=".widgets.NextRaceWidget"
+            android:exported="false"
+            android:label="@string/widget_next_race">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_next_race_info" />
+        </receiver>
+        <receiver
+            android:name=".widgets.TonightWidget"
+            android:exported="false"
+            android:label="@string/widget_tonight">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_tonight_info" />
+        </receiver>
+        <receiver
+            android:name=".widgets.QuickLogWidget"
+            android:exported="false"
+            android:label="@string/widget_quick_log">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_log_info" />
+        </receiver>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_nexus" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="nexus_default" />

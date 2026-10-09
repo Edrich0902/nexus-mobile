@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_listening">Listening</string>
+    <string name="widget_listening_description">What is playing on Spotify right now.</string>
+    <string name="widget_next_race">Next race</string>
+    <string name="widget_next_race_description">The next Formula 1 weekend, or the session that is live.</string>
+    <string name="widget_tonight">Tonight</string>
+    <string name="widget_tonight_description">A bottle from your cellar for this evening.</string>
+    <string name="widget_quick_log">Quick log</string>
+    <string name="widget_quick_log_description">Jump straight into capture for a wine, beer or book.</string>
+</resources>

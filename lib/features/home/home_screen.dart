@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
-import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
@@ -14,11 +13,6 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/activity.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
 import 'package:nexus_mobile/features/home/hub_api.dart';
-
-final nowProvider = FutureProvider<Json>((ref) async {
-  if (ref.watch(authProvider) is! SignedIn) return const {};
-  return ref.watch(hubApiProvider).now();
-});
 
 const _momentAmbient = <String, Ambient>{
   'music': NxMoments.music,

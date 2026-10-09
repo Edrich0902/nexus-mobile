@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Section "field" colours from tool/tokens.json. -->
+<resources>
+    <color name="widget_listening_bg">#1ED760</color>
+    <color name="widget_listening_ink">#06150B</color>
+    <color name="widget_f1_bg">#D42218</color>
+    <color name="widget_f1_ink">#FFF4EF</color>
+    <color name="widget_cellar_bg">#6B1A2B</color>
+    <color name="widget_cellar_ink">#FFD9DE</color>
+    <color name="widget_home_bg">#1A090D</color>
+    <color name="widget_home_ink">#F6E8EA</color>
+    <color name="widget_home_acc">#5ECF8A</color>
+    <color name="widget_home_acc_ink">#0B2416</color>
+</resources>

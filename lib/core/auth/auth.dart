@@ -7,6 +7,7 @@ import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/auth/session.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
+import 'package:nexus_mobile/core/native/push.dart';
 
 @immutable
 class User {
@@ -154,6 +155,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> logout({bool everywhere = false}) async {
+    await ref.read(pushProvider).unregister();
     try {
       await _api.post(everywhere ? '/auth/logout-all' : '/auth/logout');
     } on Object {
