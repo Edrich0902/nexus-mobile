@@ -12,6 +12,12 @@ import 'package:nexus_mobile/features/kitchen/kitchen_screen.dart';
 import 'package:nexus_mobile/features/kitchen/recipe_screen.dart';
 import 'package:nexus_mobile/features/library/book_screen.dart';
 import 'package:nexus_mobile/features/library/library_screen.dart';
+import 'package:nexus_mobile/features/listening/listening_screen.dart';
+import 'package:nexus_mobile/features/listening/spotify_browse.dart';
+import 'package:nexus_mobile/features/listening/spotify_library_screen.dart';
+import 'package:nexus_mobile/features/listening/spotify_playlist.dart';
+import 'package:nexus_mobile/features/listening/spotify_search_screen.dart';
+import 'package:nexus_mobile/features/listening/spotify_stats_screen.dart';
 import 'package:nexus_mobile/features/profile/profile_screen.dart';
 import 'package:nexus_mobile/features/profile/sessions_screen.dart';
 
@@ -21,6 +27,30 @@ int _id(GoRouterState s, String name) => int.tryParse(s.pathParameters[name] ?? 
 /// nexus-web so links from the API (activity, search, push) open as-is.
 final appRoutes = <RouteBase>[
   GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+  GoRoute(
+    path: '/spotify',
+    builder: (_, _) => const ListeningScreen(),
+    routes: [
+      GoRoute(
+        path: 'search',
+        builder: (_, s) => SpotifySearchScreen(initialQuery: s.uri.queryParameters['q']),
+      ),
+      GoRoute(path: 'library', builder: (_, _) => const SpotifyLibraryScreen()),
+      GoRoute(path: 'stats', builder: (_, _) => const SpotifyStatsScreen()),
+      GoRoute(
+        path: 'artists/:artistId',
+        builder: (_, s) => ArtistScreen(id: s.pathParameters['artistId'] ?? ''),
+      ),
+      GoRoute(
+        path: 'albums/:albumId',
+        builder: (_, s) => AlbumScreen(id: s.pathParameters['albumId'] ?? ''),
+      ),
+      GoRoute(
+        path: 'playlists/:playlistId',
+        builder: (_, s) => PlaylistScreen(id: s.pathParameters['playlistId'] ?? ''),
+      ),
+    ],
+  ),
   GoRoute(
     path: '/cellar',
     builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.wine),

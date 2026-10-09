@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
+import 'package:nexus_mobile/design/art_ambient.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/capture/capture_api.dart';
-import 'package:nexus_mobile/features/collections/drink_detail.dart';
 import 'package:nexus_mobile/features/collections/drink_kind.dart';
 import 'package:nexus_mobile/features/library/book_sheets.dart';
 

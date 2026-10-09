@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
 import 'package:nexus_mobile/core/format.dart';
+import 'package:nexus_mobile/design/debounced_search.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/collections/collection_fields.dart';
 import 'package:nexus_mobile/features/collections/collection_index.dart';

@@ -5,12 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
-import 'package:nexus_mobile/core/media/cloudinary.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/core/media/pick_image.dart';
-import 'package:nexus_mobile/design/ambient.dart';
-import 'package:nexus_mobile/design/ambient_palette.dart';
-import 'package:nexus_mobile/design/palettes.dart';
+import 'package:nexus_mobile/design/art_ambient.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/collections/analysis_panel.dart';
 import 'package:nexus_mobile/features/collections/drink_forms.dart';
@@ -20,23 +17,6 @@ import 'package:nexus_mobile/features/collections/prints.dart';
 
 String _cap(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 String _num(double v) => v % 1 == 0 ? v.toStringAsFixed(0) : '$v';
-
-/// Label artwork tints the ambient, falling back to [fallback].
-class ArtAmbient extends ConsumerWidget {
-  const ArtAmbient({required this.child, this.media, this.url, this.fallback, super.key});
-
-  final MediaImage? media;
-  final String? url;
-  final Ambient? fallback;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final thumb = ref.watch(cloudinaryProvider).url(media, MediaVariant.thumb) ?? url;
-    final ambient = ref.watch(artAmbientProvider(thumb)) ?? fallback;
-    return AmbientOverride(ambient: ambient, child: child);
-  }
-}
 
 /// Wine / beer / spirit page (web DrinkDetail + useDrinkDetail): label art,
 /// serif stage, AI tasting notes (polled while pending), facts and notes.

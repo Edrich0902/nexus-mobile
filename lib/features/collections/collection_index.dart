@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
+import 'package:nexus_mobile/design/debounced_search.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/collections/analysis_panel.dart';
 import 'package:nexus_mobile/features/collections/collection_fields.dart';
@@ -13,32 +14,6 @@ import 'package:nexus_mobile/features/collections/drink_forms.dart';
 import 'package:nexus_mobile/features/collections/drink_kind.dart';
 import 'package:nexus_mobile/features/collections/drinks_api.dart';
 import 'package:nexus_mobile/features/collections/prints.dart';
-
-/// Debounced search box state shared by collection indexes.
-mixin DebouncedSearch<T extends StatefulWidget> on State<T> {
-  final searchController = TextEditingController();
-  Timer? _debounce;
-  String searched = '';
-
-  void onSearchChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
-      if (mounted && value.trim() != searched) setState(() => searched = value.trim());
-    });
-  }
-
-  void submitSearch(String value) {
-    _debounce?.cancel();
-    setState(() => searched = value.trim());
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    searchController.dispose();
-    super.dispose();
-  }
-}
 
 /// The print list, its empty / no-match states and "Show more" paging for a
 /// [PageQuery] (web CollectionPrints inside IndexTemplate).

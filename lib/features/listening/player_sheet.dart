@@ -8,6 +8,7 @@ import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/palettes.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
+import 'package:nexus_mobile/features/listening/listening.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/spotify_api.dart';
 
@@ -414,7 +415,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Json track) {
               icon: LucideIcons.micVocal,
               onTap: () {
                 close();
-                GoRouter.of(context).go('/spotify/artists/$artistId');
+                GoRouter.of(context).push('/spotify/artists/$artistId');
               },
             ),
           if (track.str('album_id') ?? track.at('album.id') case final String albumId)
@@ -423,7 +424,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Json track) {
               icon: LucideIcons.discAlbum,
               onTap: () {
                 close();
-                GoRouter.of(context).go('/spotify/albums/$albumId');
+                GoRouter.of(context).push('/spotify/albums/$albumId');
               },
             ),
         ],
@@ -524,15 +525,13 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
   }
 }
 
-final _playlistsProvider = FutureProvider.autoDispose<List<Json>>((ref) => ref.watch(spotifyApiProvider).playlists());
-
 Future<void> showAddToPlaylistSheet(BuildContext context, String uri) => showNxSheet<void>(
   context,
   title: 'Add to playlist',
   expand: true,
   builder: (_) => Consumer(
     builder: (context, ref, _) => NxAsync(
-      value: ref.watch(_playlistsProvider),
+      value: ref.watch(spotifyPlaylistsProvider),
       data: (lists) {
         final own = lists.where((p) => p.flag('is_owner') || p.flag('collaborative')).toList();
         return ListView(

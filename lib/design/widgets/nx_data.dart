@@ -246,12 +246,14 @@ class NxRankRow extends StatelessWidget {
   }
 }
 
-/// 24-hour activity bars (web NxHourBars).
+/// Activity bars (web NxHourBars). Defaults to 24-hour ticks; pass [ticks]
+/// (one per bar) for dayparts or weekdays.
 class NxHourBars extends StatelessWidget {
-  const NxHourBars(this.values, {this.height = 72, super.key});
+  const NxHourBars(this.values, {this.height = 72, this.ticks, super.key});
 
   final List<num> values;
   final double height;
+  final List<String>? ticks;
 
   @override
   Widget build(BuildContext context) {
@@ -280,12 +282,29 @@ class NxHourBars extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            for (final h in ['00', '06', '12', '18', '23']) Text(h, style: NxText.mono(size: 10, color: c.ink3)),
-          ],
-        ),
+        if (ticks case final labels?)
+          Row(
+            children: [
+              for (var i = 0; i < labels.length; i++)
+                Expanded(
+                  child: Text(
+                    labels[i],
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
+                    style: NxText.mono(size: 10, color: i == peak ? c.ink : c.ink3),
+                  ),
+                ),
+            ],
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (final h in ['00', '06', '12', '18', '23']) Text(h, style: NxText.mono(size: 10, color: c.ink3)),
+            ],
+          ),
       ],
     );
   }

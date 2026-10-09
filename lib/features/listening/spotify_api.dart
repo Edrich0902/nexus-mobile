@@ -78,11 +78,17 @@ class SpotifyApi {
   Future<void> deletePlaylist(String id) => _api.delete('$_b/playlists/$id');
   Future<void> addPlaylistItems(String id, List<String> uris) =>
       _api.post('$_b/playlists/$id/items', data: {'uris': uris});
-  Future<void> removePlaylistItems(String id, List<String> uris) => _api.delete(
+
+  /// Removes the given occurrences; a position pins one copy when a track appears twice.
+  Future<void> removePlaylistItems(String id, List<({String uri, int? position})> items) => _api.delete(
     '$_b/playlists/$id/items',
     data: {
       'items': [
-        for (final u in uris) {'uri': u},
+        for (final i in items)
+          {
+            'uri': i.uri,
+            'positions': ?(i.position == null ? null : [i.position]),
+          },
       ],
     },
   );
