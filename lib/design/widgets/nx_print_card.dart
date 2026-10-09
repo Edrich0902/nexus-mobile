@@ -105,7 +105,6 @@ class NxPrintCard extends ConsumerWidget {
       final image = NxImage(
         media: print.media,
         url: print.src,
-        variant: MediaVariant.cardHd,
         fit: print.artMode == PrintArt.photo ? BoxFit.cover : BoxFit.contain,
         background: Colors.transparent,
         fallbackIcon: print.icon,

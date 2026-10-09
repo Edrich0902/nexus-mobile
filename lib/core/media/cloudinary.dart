@@ -1,6 +1,7 @@
 import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:cloudinary_url_gen/transformation/named_transformation.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
+import 'package:flutter/painting.dart' show BoxFit;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexus_mobile/core/config/app_config.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
@@ -20,13 +21,28 @@ enum MediaVariant {
   const MediaVariant(this.transform);
   final String transform;
 
-  /// Pick the density-appropriate variant for a logical box.
-  static MediaVariant forBox({required double width, required double devicePixelRatio, bool avatar = false}) {
+  /// Pick the density-appropriate variant for a logical box. Thumbs and cards
+  /// crop to a fixed shape (1:1, 3:2), so they only serve art that covers a box
+  /// of roughly that shape; anything else — a bottle in a tall panel, contained
+  /// art — gets the uncropped hero, or the crop would cut the subject.
+  static MediaVariant forBox({
+    required double width,
+    required double height,
+    required double devicePixelRatio,
+    BoxFit fit = BoxFit.cover,
+    bool avatar = false,
+  }) {
     if (avatar) return MediaVariant.avatar;
+    if (fit != BoxFit.cover || !height.isFinite || height <= 0) return MediaVariant.hero;
+    final aspect = width / height;
     final px = width * devicePixelRatio;
-    if (px <= 160) return MediaVariant.thumb;
-    if (px <= 480) return width <= 160 ? MediaVariant.thumbHd : MediaVariant.card;
-    if (px <= 960) return MediaVariant.cardHd;
+    if (aspect >= .8 && aspect <= 1.25) {
+      if (px <= 160) return MediaVariant.thumb;
+      if (px <= 480) return MediaVariant.thumbHd;
+    } else if (aspect > 1.25 && aspect <= 2) {
+      if (px <= 480) return MediaVariant.card;
+      if (px <= 960) return MediaVariant.cardHd;
+    }
     return MediaVariant.hero;
   }
 

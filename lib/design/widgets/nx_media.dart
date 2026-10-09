@@ -59,7 +59,15 @@ class NxImage extends ConsumerWidget {
             if (source == null || source.isEmpty) return fallback();
             final dpr = MediaQuery.devicePixelRatioOf(context);
             final width = box.maxWidth.isFinite ? box.maxWidth : 480.0;
-            final v = variant ?? MediaVariant.forBox(width: width, devicePixelRatio: dpr, avatar: avatar);
+            final v =
+                variant ??
+                MediaVariant.forBox(
+                  width: width,
+                  height: box.maxHeight,
+                  devicePixelRatio: dpr,
+                  fit: fit,
+                  avatar: avatar,
+                );
             final resolved = delivery.url(source, v);
             if (resolved == null) return fallback();
             final cacheW = box.maxWidth.isFinite ? (box.maxWidth * dpr).round() : null;

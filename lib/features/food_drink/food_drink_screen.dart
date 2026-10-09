@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
-import 'package:nexus_mobile/core/media/cloudinary.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/collections/analysis_panel.dart';
@@ -320,7 +319,7 @@ class _Mosaic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget tile(_Recent r) => NxImage(media: r.media, url: r.src, variant: MediaVariant.card);
+    Widget tile(_Recent r) => NxImage(media: r.media, url: r.src);
     Widget gap(Widget a, Widget b, Axis axis) => Flex(
       direction: axis,
       crossAxisAlignment: CrossAxisAlignment.stretch,
