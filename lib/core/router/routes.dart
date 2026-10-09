@@ -4,6 +4,10 @@ import 'package:nexus_mobile/features/collections/brewery_screen.dart';
 import 'package:nexus_mobile/features/collections/collection_index.dart';
 import 'package:nexus_mobile/features/collections/drink_detail.dart';
 import 'package:nexus_mobile/features/collections/drink_kind.dart';
+import 'package:nexus_mobile/features/f1/f1_meeting_screen.dart';
+import 'package:nexus_mobile/features/f1/f1_replay_screen.dart';
+import 'package:nexus_mobile/features/f1/f1_screen.dart';
+import 'package:nexus_mobile/features/f1/f1_session_screen.dart';
 import 'package:nexus_mobile/features/food_drink/food_drink_screen.dart';
 import 'package:nexus_mobile/features/food_drink/pairings_screen.dart';
 import 'package:nexus_mobile/features/home/home_screen.dart';
@@ -20,6 +24,7 @@ import 'package:nexus_mobile/features/listening/spotify_search_screen.dart';
 import 'package:nexus_mobile/features/listening/spotify_stats_screen.dart';
 import 'package:nexus_mobile/features/profile/profile_screen.dart';
 import 'package:nexus_mobile/features/profile/sessions_screen.dart';
+import 'package:nexus_mobile/features/sports/sport_screen.dart';
 
 int _id(GoRouterState s, String name) => int.tryParse(s.pathParameters[name] ?? '') ?? 0;
 
@@ -119,6 +124,36 @@ final appRoutes = <RouteBase>[
     path: '/food-drink',
     builder: (_, _) => const FoodDrinkScreen(),
     routes: [GoRoute(path: 'pairings', builder: (_, _) => const PairingsScreen())],
+  ),
+  GoRoute(
+    path: '/f1',
+    builder: (_, _) => const F1Screen(),
+    routes: [
+      GoRoute(
+        path: 'meetings/:meetingKey',
+        builder: (_, s) => F1MeetingScreen(meetingKey: _id(s, 'meetingKey')),
+      ),
+      GoRoute(
+        path: 'sessions/:sessionKey',
+        builder: (_, s) => F1SessionScreen(sessionKey: _id(s, 'sessionKey')),
+        routes: [
+          GoRoute(
+            path: 'replay',
+            builder: (_, s) => F1ReplayScreen(sessionKey: _id(s, 'sessionKey')),
+          ),
+        ],
+      ),
+    ],
+  ),
+  GoRoute(
+    path: '/sports',
+    redirect: (_, s) => s.uri.path == '/sports' || s.uri.path == '/sports/' ? '/sports/football' : null,
+    routes: [
+      GoRoute(
+        path: ':sport',
+        builder: (_, s) => SportScreen(sport: s.pathParameters['sport'] ?? 'football'),
+      ),
+    ],
   ),
   GoRoute(
     path: '/profile',
