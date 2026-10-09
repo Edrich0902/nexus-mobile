@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:nexus_mobile/features/capture/capture_screen.dart';
 import 'package:nexus_mobile/features/collections/brewery_screen.dart';
 import 'package:nexus_mobile/features/collections/collection_index.dart';
 import 'package:nexus_mobile/features/collections/drink_detail.dart';
@@ -97,4 +98,12 @@ final appRoutes = <RouteBase>[
 ];
 
 /// Full-screen routes above the shell (camera, scanner, replay).
-final rootRoutes = <RouteBase>[];
+final rootRoutes = <RouteBase>[
+  GoRoute(
+    path: '/capture',
+    builder: (_, s) => CaptureScreen(
+      kind: s.uri.queryParameters['kind'],
+      barcode: s.uri.queryParameters['mode'] == 'barcode',
+    ),
+  ),
+];
