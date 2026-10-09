@@ -116,9 +116,11 @@ class NxProgressRail extends StatelessWidget {
         child: SizedBox(
           height: height,
           child: Stack(
+            fit: StackFit.expand,
             children: [
-              Positioned.fill(child: ColoredBox(color: track ?? c.line)),
+              ColoredBox(color: track ?? c.line),
               FractionallySizedBox(
+                alignment: AlignmentDirectional.centerStart,
                 widthFactor: value.clamp(0, 1).toDouble(),
                 child: ColoredBox(color: color ?? c.ink),
               ),

@@ -55,7 +55,14 @@ class NxField extends StatelessWidget with BentoItem {
     final effective = bg == null && variant == FieldVariant.solid ? FieldVariant.surface : variant;
     final (Color background, Color fg, Color valueColor, Border? border) = switch (effective) {
       FieldVariant.solid => (bg!, ink ?? inkFor(bg!), ink ?? inkFor(bg!), null),
-      FieldVariant.tint => (bg!.withValues(alpha: .18), c.ink, bg!, null),
+      // The field colour is often a deep section hue: lift it for the value
+      // so it still reads on its own 18% wash over the dark page.
+      FieldVariant.tint => (
+        bg!.withValues(alpha: .18),
+        c.ink,
+        legibleOn(bg!, Color.alphaBlend(bg!.withValues(alpha: .18), c.amb), min: 3),
+        null,
+      ),
       FieldVariant.outline => (Colors.transparent, c.ink, c.ink, Border.all(color: c.lineStrong)),
       FieldVariant.surface => (c.surface2, c.ink, c.ink, null),
     };

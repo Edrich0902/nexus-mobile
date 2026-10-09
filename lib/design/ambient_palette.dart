@@ -78,6 +78,17 @@ Color shade(Color c, double amount) {
   return Color.from(alpha: c.a, red: mix(c.r), green: mix(c.g), blue: mix(c.b));
 }
 
+/// [fg] lifted (on dark) or deepened (on light) in small steps until it reads
+/// against [bg], keeping its hue.
+Color legibleOn(Color fg, Color bg, {double min = 4.5}) {
+  final step = bg.computeLuminance() < .18 ? .15 : -.15;
+  var c = fg;
+  for (var i = 0; i < 10 && contrastRatio(c, bg) < min; i++) {
+    c = shade(c, step);
+  }
+  return c;
+}
+
 /// `color-mix(in srgb, a p%, b)`.
 Color mix(Color a, double p, Color b) => Color.lerp(b, a, p)!;
 

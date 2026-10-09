@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/meta/app_meta.dart';
+import 'package:nexus_mobile/design/ambient_palette.dart';
+import 'package:nexus_mobile/design/profile.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 
 import '../support/fakes.dart';
@@ -133,5 +135,54 @@ void main() {
     expect(aside.right, lessThanOrEqualTo(field.right));
     expect(aside.left, greaterThan(cellar.right));
     expect(cellar.width, greaterThan(30), reason: 'the label keeps its natural width');
+  });
+
+  testWidgets('progress rails and taste meters paint their fill', (tester) async {
+    const fill = Color(0xFFFF0000);
+    await tester.pumpWidget(
+      nexusTestApp(
+        const Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              children: [
+                NxProgressRail(value: .5, color: fill, height: 4),
+                NxMeters([ProfileAxis('Body', .8, 'full'), ProfileAxis('Tannin', .5, 'medium')]),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final rail = find.byWidgetPredicate((w) => w is ColoredBox && w.color == fill);
+    expect(tester.getSize(rail), const Size(100, 4));
+    expect(tester.getTopLeft(rail).dx, 0, reason: 'fills from the start edge');
+
+    final acc = tester.element(find.byType(NxMeters)).nx.acc;
+    final meters = find.byWidgetPredicate((w) => w is ColoredBox && w.color == acc);
+    expect(meters, findsNWidgets(2));
+    for (final m in tester.renderObjectList<RenderBox>(meters)) {
+      expect(m.size.height, 4);
+      expect(m.size.width, greaterThan(20));
+    }
+  });
+
+  testWidgets('a tint field keeps its value legible on a deep section colour', (tester) async {
+    final bg = SectionKey.cellar.field.bg;
+    await tester.pumpWidget(
+      nexusTestApp(
+        NxBento(
+          children: [NxField(bg: bg, variant: FieldVariant.tint, label: 'Average rating', value: '4.5')],
+        ),
+      ),
+    );
+
+    final value = tester.widget<Text>(find.text('4.5')).style!.color!;
+    final amb = tester.element(find.byType(NxField)).nx.amb;
+    final surface = Color.alphaBlend(bg.withValues(alpha: .18), amb);
+    expect(contrastRatio(value, surface), greaterThanOrEqualTo(3));
   });
 }
