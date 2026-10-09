@@ -42,44 +42,53 @@ class NxStatNumber extends StatelessWidget {
 
 /// Labelled 0–1 bars (web NxMeters / `.scale`).
 class NxMeters extends StatelessWidget {
-  const NxMeters(this.rows, {this.labelWidth = 70, this.showWords = false, super.key});
+  const NxMeters(this.rows, {this.labelWidth = 70, this.showWords = false, this.stacked = false, super.key});
 
   final List<ProfileAxis> rows;
   final double labelWidth;
   final bool showWords;
 
+  /// Label above a full-width bar, for narrow columns (print cards) where a
+  /// side label would squeeze the bar or wrap.
+  final bool stacked;
+
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
+    final labelStyle = NxText.sans(size: 12, color: c.ink3, height: 1.2);
+    Widget label(String text) =>
+        Text(text, maxLines: 1, softWrap: false, overflow: TextOverflow.fade, style: labelStyle);
+    Widget bar(ProfileAxis r) => TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: math.max(.06, r.value)),
+      duration: const Duration(milliseconds: 800),
+      curve: NxMotion.ease,
+      builder: (_, v, _) => NxProgressRail(value: v, color: c.acc, track: c.tint2, height: 4),
+    );
+
     return Column(
       children: [
-        for (final r in rows)
+        for (final (i, r) in rows.indexed)
           Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: EdgeInsets.only(bottom: i == rows.length - 1 ? 0 : (stacked ? 9 : 6)),
             child: Semantics(
               label: '${r.label}: ${r.word}',
               excludeSemantics: true,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: labelWidth,
-                    child: Text(r.label, style: NxText.sans(size: 12, color: c.ink3)),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: math.max(.06, r.value)),
-                      duration: const Duration(milliseconds: 800),
-                      curve: NxMotion.ease,
-                      builder: (_, v, _) => NxProgressRail(value: v, color: c.acc, track: c.tint2, height: 4),
+              child: stacked
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [label(r.label), const SizedBox(height: 5), bar(r)],
+                    )
+                  : Row(
+                      children: [
+                        SizedBox(width: labelWidth, child: label(r.label)),
+                        const SizedBox(width: 8),
+                        Expanded(child: bar(r)),
+                        if (showWords) ...[
+                          const SizedBox(width: 8),
+                          Text(r.word, style: NxText.sans(size: 12, color: c.ink2)),
+                        ],
+                      ],
                     ),
-                  ),
-                  if (showWords) ...[
-                    const SizedBox(width: 8),
-                    Text(r.word, style: NxText.sans(size: 12, color: c.ink2)),
-                  ],
-                ],
-              ),
             ),
           ),
       ],

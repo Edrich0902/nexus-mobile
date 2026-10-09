@@ -62,6 +62,52 @@ void main() {
     }
   });
 
+  testWidgets('print card meters keep each label on one line with a usable bar', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(
+      nexusTestApp(
+        SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: NxPrintCard(
+            print: const PrintModel(
+              key: 'beer',
+              route: '/beer/1',
+              title: 'CBC Lager',
+              by: 'Cape Brewing Company',
+              head: 'Lager · Paarl',
+              headRight: '4.8% ABV',
+              artMode: PrintArt.cutout,
+              icon: LucideIcons.beer,
+              fallbackBg: Color(0xFFD4A017),
+              foot: 'Logged 26 Jul · can',
+              profile: [
+                ProfileAxis('Body', .35, 'Light'),
+                ProfileAxis('Bitterness', .5, 'Medium'),
+                ProfileAxis('Sweetness', .25, 'Low'),
+                ProfileAxis('Fizz', .7, 'High'),
+                ProfileAxis('Finish', .4, 'Short'),
+              ],
+            ),
+            onTap: () {},
+          ),
+        ),
+        overrides: [appMetaProvider.overrideWith((ref) async => _meta)],
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(tester.takeException(), isNull);
+    final oneLine = tester.getSize(find.text('Body')).height;
+    for (final label in ['Bitterness', 'Sweetness']) {
+      expect(tester.getSize(find.text(label)).height, oneLine, reason: '$label wrapped');
+    }
+    final rails = find.byType(NxProgressRail);
+    expect(rails, findsNWidgets(3));
+    for (var i = 0; i < 3; i++) {
+      expect(tester.getSize(rails.at(i)).width, greaterThan(90));
+    }
+  });
+
   testWidgets('print card art is delivered uncropped in every art mode', (tester) async {
     _phone(tester);
     const stored = 'https://res.cloudinary.com/nexus-hub/image/upload/v1/nexus/cellar/endura.jpg';

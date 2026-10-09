@@ -208,13 +208,13 @@ class NxPrintCard extends ConsumerWidget {
                           style: NxText.sans(size: 13, color: c.ink2),
                         ),
                       ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     if (print.profile != null)
                       Row(
                         children: [
-                          NxRadar(print.profile!.map((a) => a.value).toList(), size: 56),
-                          const SizedBox(width: 10),
-                          Expanded(child: NxMeters(print.profile!.take(3).toList(), labelWidth: 58)),
+                          NxRadar(print.profile!.map((a) => a.value).toList(), size: 60),
+                          const SizedBox(width: 14),
+                          Expanded(child: NxMeters(print.profile!.take(3).toList(), stacked: true)),
                         ],
                       )
                     else if (print.status != null)
