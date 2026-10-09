@@ -291,6 +291,121 @@ class NxHourBars extends StatelessWidget {
   }
 }
 
+/// Doughnut with a legend (web NexusChart `type="doughnut"`).
+class NxDonut extends StatelessWidget {
+  const NxDonut(this.segments, {this.size = 132, this.centre, this.centreLabel, super.key});
+
+  /// (label, value, colour)
+  final List<(String, num, Color)> segments;
+  final double size;
+  final String? centre;
+  final String? centreLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.nx;
+    final total = segments.fold<num>(0, (s, e) => s + e.$2);
+    return Semantics(
+      label: segments.map((s) => '${s.$1} ${s.$2}').join(', '),
+      excludeSemantics: true,
+      child: Row(
+        children: [
+          SizedBox.square(
+            dimension: size,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 900),
+              curve: NxMotion.ease,
+              builder: (_, t, child) => CustomPaint(
+                painter: _DonutPainter(segments: segments, total: total, sweep: t, track: c.tint),
+                child: child,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(centre ?? '$total', style: NxText.display(size: 30, color: c.ink)),
+                    if (centreLabel != null) Text(centreLabel!, style: NxText.sans(size: 11.5, color: c.ink3)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (label, value, colour) in segments)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(color: colour, borderRadius: BorderRadius.circular(3)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(label, style: NxText.sans(size: 13.5, color: c.ink2)),
+                        ),
+                        Text('$value', style: NxText.mono(size: 12.5, color: c.ink)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DonutPainter extends CustomPainter {
+  _DonutPainter({required this.segments, required this.total, required this.sweep, required this.track});
+
+  final List<(String, num, Color)> segments;
+  final num total;
+  final double sweep;
+  final Color track;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const stroke = 16.0;
+    final rect = Offset.zero & size;
+    final arc = rect.deflate(stroke / 2);
+    final base = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..color = track;
+    canvas.drawArc(arc, 0, math.pi * 2, false, base);
+    if (total <= 0) return;
+    const gap = .035;
+    var start = -math.pi / 2;
+    for (final (_, value, colour) in segments) {
+      final full = value / total * math.pi * 2;
+      final draw = math.max(0, full * sweep - (segments.length > 1 ? gap : 0)).toDouble();
+      canvas.drawArc(
+        arc,
+        start,
+        draw,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke
+          ..strokeCap = StrokeCap.butt
+          ..color = colour,
+      );
+      start += full * sweep;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DonutPainter old) => old.sweep != sweep || old.segments != segments || old.track != track;
+}
+
 /// Labelled horizontal bar comparison (web NxRangeBar / constructor bars).
 class NxBarRow extends StatelessWidget {
   const NxBarRow({required this.label, required this.value, required this.max, this.color, this.trailing, super.key});

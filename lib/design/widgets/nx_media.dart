@@ -82,6 +82,125 @@ class NxImage extends ConsumerWidget {
   }
 }
 
+/// Full-screen, pinch-to-zoom artwork (web NexusImage `previewable`).
+Future<void> showImagePreview(BuildContext context, {MediaImage? media, String? url, String? label}) {
+  return Navigator.of(context, rootNavigator: true).push(
+    PageRouteBuilder<void>(
+      opaque: false,
+      barrierColor: Colors.black.withValues(alpha: .92),
+      barrierDismissible: true,
+      pageBuilder: (context, _, _) => _ImagePreview(media: media, url: url, label: label),
+      transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+    ),
+  );
+}
+
+class _ImagePreview extends StatelessWidget {
+  const _ImagePreview({this.media, this.url, this.label});
+
+  final MediaImage? media;
+  final String? url;
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    final pad = MediaQuery.paddingOf(context);
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: InteractiveViewer(
+              maxScale: 4,
+              child: Center(
+                child: NxImage(
+                  media: media,
+                  url: url,
+                  variant: MediaVariant.hero,
+                  fit: BoxFit.contain,
+                  background: Colors.transparent,
+                  semanticLabel: label,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 12,
+          top: pad.top + 8,
+          child: NxIconButton(
+            LucideIcons.x,
+            tooltip: 'Close',
+            filled: true,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Stage artwork well: the image (tap to preview) or an "add a photo" prompt.
+class NxArtWell extends StatelessWidget {
+  const NxArtWell({
+    required this.onAdd,
+    this.media,
+    this.url,
+    this.label = '',
+    this.addLabel = 'Add a photo',
+    this.fit = BoxFit.cover,
+    super.key,
+  });
+
+  final MediaImage? media;
+  final String? url;
+  final String label;
+  final String addLabel;
+  final VoidCallback onAdd;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.nx;
+    final has = (media != null && !media!.isEmpty) || (url != null && url!.isNotEmpty);
+    if (has) {
+      return GestureDetector(
+        onTap: () => showImagePreview(context, media: media, url: url, label: label),
+        child: NxImage(media: media, url: url, variant: MediaVariant.hero, fit: fit, semanticLabel: label),
+      );
+    }
+    return Semantics(
+      button: true,
+      label: addLabel,
+      excludeSemantics: true,
+      child: NxPressable(
+        onTap: onAdd,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: c.lineStrong),
+            borderRadius: BorderRadius.circular(NxRadius.lg),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(LucideIcons.imagePlus, size: 24, color: c.acc),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  addLabel,
+                  textAlign: TextAlign.center,
+                  style: NxText.sans(size: 12.5, color: c.ink3),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class NxAvatar extends ConsumerWidget {
   const NxAvatar({this.size = 32, this.user, super.key});
 

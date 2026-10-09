@@ -1,11 +1,94 @@
 import 'package:go_router/go_router.dart';
+import 'package:nexus_mobile/features/collections/brewery_screen.dart';
+import 'package:nexus_mobile/features/collections/collection_index.dart';
+import 'package:nexus_mobile/features/collections/drink_detail.dart';
+import 'package:nexus_mobile/features/collections/drink_kind.dart';
+import 'package:nexus_mobile/features/food_drink/food_drink_screen.dart';
+import 'package:nexus_mobile/features/food_drink/pairings_screen.dart';
 import 'package:nexus_mobile/features/home/home_screen.dart';
+import 'package:nexus_mobile/features/kitchen/discover_screen.dart';
+import 'package:nexus_mobile/features/kitchen/kitchen_screen.dart';
+import 'package:nexus_mobile/features/kitchen/recipe_screen.dart';
+import 'package:nexus_mobile/features/library/book_screen.dart';
+import 'package:nexus_mobile/features/library/library_screen.dart';
 import 'package:nexus_mobile/features/profile/profile_screen.dart';
 import 'package:nexus_mobile/features/profile/sessions_screen.dart';
 
-/// Routes rendered inside the shell (top bar + phone bar).
+int _id(GoRouterState s, String name) => int.tryParse(s.pathParameters[name] ?? '') ?? 0;
+
+/// Routes rendered inside the shell (top bar + phone bar). Paths mirror
+/// nexus-web so links from the API (activity, search, push) open as-is.
 final appRoutes = <RouteBase>[
   GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+  GoRoute(
+    path: '/cellar',
+    builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.wine),
+    routes: [
+      GoRoute(
+        path: 'wines/:wineId',
+        builder: (_, s) => DrinkDetailScreen(kind: DrinkKind.wine, id: _id(s, 'wineId')),
+      ),
+    ],
+  ),
+  GoRoute(
+    path: '/beer',
+    builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.beer),
+    routes: [
+      GoRoute(
+        path: 'beers/:beerId',
+        builder: (_, s) => DrinkDetailScreen(kind: DrinkKind.beer, id: _id(s, 'beerId')),
+      ),
+      GoRoute(
+        path: 'breweries/:breweryId',
+        builder: (_, s) => BreweryScreen(id: _id(s, 'breweryId')),
+      ),
+    ],
+  ),
+  GoRoute(
+    path: '/spirits',
+    builder: (_, _) => const DrinkIndexScreen(kind: DrinkKind.spirit),
+    routes: [
+      GoRoute(
+        path: ':spiritId',
+        builder: (_, s) => DrinkDetailScreen(kind: DrinkKind.spirit, id: _id(s, 'spiritId')),
+      ),
+    ],
+  ),
+  GoRoute(
+    path: '/library',
+    builder: (_, _) => const LibraryScreen(),
+    routes: [
+      GoRoute(
+        path: 'books/:bookId',
+        builder: (_, s) => BookScreen(id: _id(s, 'bookId')),
+      ),
+    ],
+  ),
+  GoRoute(
+    path: '/kitchen',
+    builder: (_, _) => const KitchenScreen(),
+    routes: [
+      GoRoute(
+        path: 'discover',
+        builder: (_, _) => const DiscoverScreen(),
+        routes: [
+          GoRoute(
+            path: ':mealdbId',
+            builder: (_, s) => MealPreviewScreen(mealdbId: s.pathParameters['mealdbId'] ?? ''),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: 'recipes/:recipeId',
+        builder: (_, s) => SavedRecipeScreen(id: _id(s, 'recipeId')),
+      ),
+    ],
+  ),
+  GoRoute(
+    path: '/food-drink',
+    builder: (_, _) => const FoodDrinkScreen(),
+    routes: [GoRoute(path: 'pairings', builder: (_, _) => const PairingsScreen())],
+  ),
   GoRoute(
     path: '/profile',
     builder: (_, _) => const ProfileScreen(),

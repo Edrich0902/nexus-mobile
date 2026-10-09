@@ -63,6 +63,42 @@ Future<T?> showNxSheet<T>(
   );
 }
 
+/// Confirm a destructive action (web PrimeVue `confirm.require` popover):
+/// resolves true only when the danger button is pressed.
+Future<bool> showNxConfirm(
+  BuildContext context, {
+  required String message,
+  String confirmLabel = 'Delete',
+  String cancelLabel = 'Keep',
+}) async {
+  unawaited(HapticFeedback.mediumImpact());
+  final ok = await showNxSheet<bool>(
+    context,
+    builder: (sheet) {
+      final c = sheet.nx;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 18),
+            child: Text(message, style: NxText.sans(size: 16, color: c.ink, height: 1.45)),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              NxButton(cancelLabel, onPressed: () => Navigator.of(sheet).pop(false), variant: NxButtonVariant.ghost),
+              const SizedBox(width: 8),
+              NxButton(confirmLabel, onPressed: () => Navigator.of(sheet).pop(true), variant: NxButtonVariant.danger),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+  return ok ?? false;
+}
+
 /// Inline armed confirmation for destructive actions (web NexusAvatar
 /// sign-out): first tap arms, the row swaps to a red confirm that disarms
 /// itself after 6 s with a draining bar.
