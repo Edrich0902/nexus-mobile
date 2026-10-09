@@ -49,10 +49,69 @@ CI fails if `lib/design/tokens.g.dart` is out of date.
   server-held credentials. The app never ships a Cloudinary key or an unsigned
   preset. Photos are downscaled to 2560px / JPEG 85 on device first.
 
-## Native setup still needed
+## Native integrations
 
-- Firebase: add `android/app/google-services.json` and
-  `ios/Runner/GoogleService-Info.plist`, then set `FCM_*` on the API. Push is
-  skipped gracefully until they exist.
-- iOS home-screen widget and Live Activity targets (see `ios/NexusWidgets/README.md`).
-- Release signing: `android/key.properties` (git-ignored) and an Apple team in Xcode.
+All of them start from `lib/shell/native_bootstrap.dart` once you're signed in,
+and each one degrades quietly when its platform setup is missing.
+
+| Feature | Dart | Native |
+|---|---|---|
+| Deep links `nexus://open/<web path>` and `https://nexus.barforge.co.za/<path>` | `core/native/deep_links.dart` | intent filters / URL scheme |
+| Push (FCM) → `POST /v1/devices`; taps open `data.route` | `core/native/push.dart` | Firebase config (below) |
+| Home-screen widgets: Listening, Next race, Tonight, Quick log | `features/home/home_widgets.dart` | Android `widgets/NexusWidgets.kt`; iOS `ios/NexusWidgets/` |
+| F1 Live Activity / Android ongoing countdown | `features/f1/f1_live_activity.dart` | iOS `ios/NexusWidgets/F1LiveActivity.swift` |
+| Quick actions (long-press icon) | `core/native/shortcuts.dart` | `ic_shortcut_*` drawables |
+| Siri / Shortcuts: Log a wine, Log a beer, Scan a book | — | `ios/Runner/NexusShortcuts.swift` |
+
+The API can switch push and Live Activities off with
+`MOBILE_FEATURE_PUSH` / `MOBILE_FEATURE_LIVE_ACTIVITIES`.
+
+### Still needs your accounts
+
+- **Firebase:** fill the `FIREBASE_*` keys in `config/<env>.json` (or drop in
+  `google-services.json` / `GoogleService-Info.plist`), upload an APNs key to
+  Firebase, and set `FCM_*` on the API.
+- **iOS widget + Live Activity target, App Group, Push and Associated Domains
+  capabilities:** see `ios/NexusWidgets/README.md`.
+- **App links verification:** host `/.well-known/assetlinks.json` and
+  `apple-app-site-association` on the web domain.
+- **Release signing:** `android/key.properties` (git-ignored) and an Apple team in Xcode.
+
+## Release
+
+```bash
+flutter test                                   # unit, widget + golden tests
+flutter build appbundle --release --obfuscate --split-debug-info=build/symbols \
+  --dart-define-from-file=config/prod.json
+flutter build ipa --release --obfuscate --split-debug-info=build/symbols \
+  --dart-define-from-file=config/prod.json
+```
+
+- **Version gate:** bump `version:` in `pubspec.yaml`. Set
+  `MOBILE_MIN_VERSION_IOS` / `MOBILE_MIN_VERSION_ANDROID` on the API to force
+  older builds onto the "Update required" screen. Set `APP_STORE_ID` in
+  `config/prod.json` so that screen links to the App Store.
+- **Phased release:** start Play at 10% staged rollout and enable App Store
+  phased release (7 days). Ship API changes behind `/v1/meta` feature flags so
+  they can be turned off without a new build.
+- **Fonts** are bundled in `assets/fonts` with no runtime fetching. Their OFL
+  licences appear on the licences page. After a `google_fonts` upgrade, re-run
+  `python3 tool/fetch_fonts.py`.
+- **Icon and splash** come from the web brand assets: `dart run
+  flutter_launcher_icons` and `dart run flutter_native_splash:create`. Check
+  the diff afterwards, because both tools reformat `AndroidManifest.xml` /
+  `Info.plist`.
+- **Goldens** (`test/goldens`) are recorded on macOS. Re-record after an
+  intentional design change with `flutter test --update-goldens --tags golden`,
+  and skip them on other hosts with `--exclude-tags golden`.
+
+### Store privacy answers
+
+| Data | Collected | Purpose | Linked to user |
+|---|---|---|---|
+| Email, name | Yes | Account | Yes |
+| Photos (labels, covers) | Yes, only when you upload | App functionality | Yes |
+| Music listening history (via Spotify) | Yes, when connected | App functionality | Yes |
+| Crash data (Sentry) | Yes | App functionality | No |
+| Device push token | Yes | Notifications | Yes |
+| Tracking / ads | No | — | — |

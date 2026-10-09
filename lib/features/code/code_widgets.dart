@@ -6,16 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
+import 'package:nexus_mobile/core/native/open_external.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/code/github.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-Future<void> openExternal(String? url) async {
-  final uri = url == null ? null : Uri.tryParse(url);
-  if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http')) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-}
 
 /// Overview · Pull requests · Search · Stats (web CodeNav).
 class CodeNav extends StatelessWidget {

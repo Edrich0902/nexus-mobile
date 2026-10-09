@@ -8,9 +8,9 @@ import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
 import 'package:nexus_mobile/core/format.dart';
+import 'package:nexus_mobile/core/native/open_external.dart';
 import 'package:nexus_mobile/design/profile.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
-import 'package:nexus_mobile/features/code/code_widgets.dart';
 import 'package:nexus_mobile/features/collections/collection_fields.dart';
 
 // ── Helpers (web routes/admin/admin.ts) ───────────────────────────────────

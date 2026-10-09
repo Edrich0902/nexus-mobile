@@ -6,6 +6,7 @@ import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/theme.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/shell/native_bootstrap.dart';
+import 'package:nexus_mobile/shell/update_gate.dart';
 
 class NexusApp extends ConsumerWidget {
   const NexusApp({super.key});
@@ -19,7 +20,16 @@ class NexusApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: buildNexusTheme(SectionKey.home.ambient),
       routerConfig: router,
-      builder: (context, child) => AmbientTheme(child: AppLockGate(child: child ?? const SizedBox())),
+      builder: (context, child) {
+        // Honour large system text, capped where fixed-height fields would clip.
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(textScaler: mq.textScaler.clamp(minScaleFactor: .85, maxScaleFactor: 1.3)),
+          child: AmbientTheme(
+            child: UpdateGate(child: AppLockGate(child: child ?? const SizedBox())),
+          ),
+        );
+      },
     );
   }
 }

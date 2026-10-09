@@ -8,12 +8,22 @@ import 'package:nexus_mobile/design/typography.dart';
 /// Scale-down press feedback used by every tappable card (web `:hover`
 /// scale(.985) translated to touch).
 class NxPressable extends StatefulWidget {
-  const NxPressable({required this.onTap, required this.child, this.onLongPress, this.scale = .975, super.key});
+  const NxPressable({
+    required this.onTap,
+    required this.child,
+    this.onLongPress,
+    this.scale = .975,
+    this.semanticLabel,
+    super.key,
+  });
 
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final Widget child;
   final double scale;
+
+  /// Overrides the label read by screen readers (defaults to the child's text).
+  final String? semanticLabel;
 
   @override
   State<NxPressable> createState() => _NxPressableState();
@@ -28,6 +38,7 @@ class _NxPressableState extends State<NxPressable> {
 
   @override
   Widget build(BuildContext context) {
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => _set(true),
@@ -38,11 +49,16 @@ class _NxPressableState extends State<NxPressable> {
         widget.onTap();
       },
       onLongPress: widget.onLongPress,
-      child: AnimatedScale(
-        scale: _down ? widget.scale : 1,
-        duration: const Duration(milliseconds: 160),
-        curve: NxMotion.ease,
-        child: widget.child,
+      child: Semantics(
+        button: true,
+        label: widget.semanticLabel,
+        excludeSemantics: widget.semanticLabel != null,
+        child: AnimatedScale(
+          scale: _down && !reduce ? widget.scale : 1,
+          duration: reduce ? Duration.zero : const Duration(milliseconds: 160),
+          curve: NxMotion.ease,
+          child: widget.child,
+        ),
       ),
     );
   }

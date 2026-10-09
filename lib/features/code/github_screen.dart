@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
+import 'package:nexus_mobile/core/native/open_external.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/code/code_widgets.dart';
 import 'package:nexus_mobile/features/code/github.dart';

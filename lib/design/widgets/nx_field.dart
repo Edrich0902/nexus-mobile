@@ -90,21 +90,27 @@ class NxField extends StatelessWidget with BentoItem {
                   ],
                 ),
               ),
-            const Spacer(),
-            if (child != null)
-              child!
-            else if (value != null && value!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value!,
-                    style: NxText.display(size: valueSize, color: valueColor),
+            if (child != null) ...[
+              const Spacer(),
+              child!,
+            ] else if (value != null && value!.isNotEmpty)
+              // Flexible (not a Spacer) so rounding in the bento's intrinsic
+              // row height shrinks the number a hair instead of overflowing.
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      value!,
+                      style: NxText.display(size: valueSize, color: valueColor),
+                    ),
                   ),
                 ),
-              ),
+              )
+            else
+              const Spacer(),
             if (sub != null)
               Padding(
                 padding: const EdgeInsets.only(top: 6),

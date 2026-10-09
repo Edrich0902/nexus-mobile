@@ -27,6 +27,11 @@ abstract final class AppConfig {
   /// Shared container for home-screen widgets and Live Activities (iOS).
   static const appGroupId = 'group.app.nexus.nexusMobile';
 
+  /// Numeric App Store id, for the "update required" store link.
+  static const appStoreId = String.fromEnvironment('APP_STORE_ID');
+
+  static const androidPackage = 'app.nexus.nexus_mobile';
+
   static const firebaseProjectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
   static const firebaseSenderId = String.fromEnvironment('FIREBASE_SENDER_ID');
   static const firebaseAndroidAppId = String.fromEnvironment('FIREBASE_ANDROID_APP_ID');

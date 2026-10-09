@@ -1,7 +1,7 @@
 name: nexus_mobile
 description: "Nexus for iOS and Android."
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.9.2
@@ -42,6 +42,8 @@ dependencies:
   url_launcher: ^6.3.2
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.5
@@ -49,3 +51,25 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Bundled so release builds never fetch fonts (see tool/fetch_fonts.py).
+  assets:
+    - assets/fonts/
+
+# dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: assets/brand/nexus-icon-1024.png
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#1A090D"
+  adaptive_icon_foreground: assets/brand/nexus-icon-foreground-1024.png
+  adaptive_icon_monochrome: assets/brand/nexus-icon-foreground-1024.png
+
+# dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#1A090D"
+  image: assets/brand/nexus-icon-foreground-1024.png
+  android_12:
+    color: "#1A090D"
+    image: assets/brand/nexus-icon-foreground-1024.png
+  fullscreen: false

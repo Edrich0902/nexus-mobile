@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
+import 'package:nexus_mobile/core/meta/app_meta.dart';
 import 'package:nexus_mobile/core/native/deep_links.dart';
 import 'package:nexus_mobile/core/native/notifications.dart';
 import 'package:nexus_mobile/core/native/push.dart';
@@ -20,9 +21,8 @@ final nativeBootstrapProvider = Provider<void>((ref) {
   ref.listen(authProvider, (previous, next) {
     switch (next) {
       case SignedIn():
-        unawaited(ref.read(pushProvider).start());
         ref.read(homeWidgetSyncProvider).start();
-        ref.read(f1LiveActivityProvider).start();
+        unawaited(_startFlagged(ref));
       case SignedOut():
         unawaited(ref.read(homeWidgetSyncProvider).clear());
         unawaited(ref.read(f1LiveActivityProvider).stop());
@@ -31,3 +31,15 @@ final nativeBootstrapProvider = Provider<void>((ref) {
     }
   }, fireImmediately: true);
 });
+
+/// Push and Live Activities can be switched off server-side via `/v1/meta`.
+Future<void> _startFlagged(Ref ref) async {
+  AppMeta? meta;
+  try {
+    meta = await ref.read(appMetaProvider.future);
+  } on Object {
+    meta = null; // offline: default to on
+  }
+  if (meta?.feature('push') ?? true) unawaited(ref.read(pushProvider).start());
+  if (meta?.feature('live_activities') ?? true) ref.read(f1LiveActivityProvider).start();
+}

@@ -1,0 +1,4 @@
+tags:
+  # Pixel goldens depend on the host's font rasteriser; run them on macOS
+  # (where they were recorded) or skip with --exclude-tags golden.
+  golden: {}

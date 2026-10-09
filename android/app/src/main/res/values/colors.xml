@@ -11,4 +11,5 @@
     <color name="widget_home_ink">#F6E8EA</color>
     <color name="widget_home_acc">#5ECF8A</color>
     <color name="widget_home_acc_ink">#0B2416</color>
+    <color name="ic_launcher_background">#1A090D</color>
 </resources>
