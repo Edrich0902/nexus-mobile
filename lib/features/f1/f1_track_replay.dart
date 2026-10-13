@@ -12,9 +12,9 @@ typedef ReplayCar = ({int number, String code, Color colour});
 /// Replay payload pre-processed once: samples per car sorted by time and the
 /// shared timeline, so each frame is a binary search per car.
 class ReplayModel {
-  ReplayModel._(this.tracks, this.times, this.cars, this.bounds);
+  new _(this.tracks, this.times, this.cars, this.bounds);
 
-  factory ReplayModel.from(Json payload) {
+  factory from(Json payload) {
     final tracks = <int, List<TrackSample>>{};
     for (final row in payload.list('location')) {
       final t = DateTime.tryParse(row.text('date'))?.millisecondsSinceEpoch;
@@ -72,7 +72,7 @@ class ReplayModel {
 /// Web NexusF1TrackReplay: the circuit traced from location data, a dot per
 /// car, play / scrub, and car chips to focus one driver.
 class F1TrackReplay extends StatefulWidget {
-  const F1TrackReplay({required this.model, required this.focus, required this.onFocus, super.key});
+  const new({required this.model, required this.focus, required this.onFocus, super.key});
 
   final ReplayModel model;
   final int? focus;
@@ -215,7 +215,7 @@ class _F1TrackReplayState extends State<F1TrackReplay> with SingleTickerProvider
 }
 
 class _TrackPainter extends CustomPainter {
-  _TrackPainter({required this.model, required this.time, required this.focus, required this.ink});
+  new({required this.model, required this.time, required this.focus, required this.ink});
 
   final ReplayModel model;
   final int time;

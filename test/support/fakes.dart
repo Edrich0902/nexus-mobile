@@ -27,7 +27,7 @@ class MemorySessionStore extends SessionStore {
 
 /// Routes `METHOD /path` to canned handlers and records every call.
 class FakeApi extends ApiClient {
-  FakeApi(this.routes) : super(MemorySessionStore());
+  new(this.routes) : super(MemorySessionStore());
 
   final Map<String, Handler> routes;
   final calls = <String>[];
@@ -53,7 +53,7 @@ class FakeApi extends ApiClient {
 }
 
 class FakePush extends PushNotifications {
-  FakePush(super._ref);
+  new(super._ref);
 
   int unregistered = 0;
 

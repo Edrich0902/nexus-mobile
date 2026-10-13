@@ -9,7 +9,7 @@ import 'package:nexus_mobile/features/listening/player.dart';
 /// (half a second is under a pixel on a phone-width rail) instead of a vsync
 /// ticker, and only this subtree repaints.
 class LiveTrackPosition extends ConsumerStatefulWidget {
-  const LiveTrackPosition({required this.builder, this.step = const Duration(milliseconds: 500), super.key});
+  const new({required this.builder, this.step = const Duration(milliseconds: 500), super.key});
 
   final Widget Function(BuildContext context, int positionMs, int durationMs) builder;
   final Duration step;
@@ -22,7 +22,7 @@ class _LiveTrackPositionState extends ConsumerState<LiveTrackPosition> {
   Timer? _timer;
 
   void _run(bool playing) {
-    if (playing && TickerMode.of(context)) {
+    if (playing && TickerMode.valuesOf(context).enabled) {
       _timer ??= Timer.periodic(widget.step, (_) {
         if (mounted) setState(() {});
       });

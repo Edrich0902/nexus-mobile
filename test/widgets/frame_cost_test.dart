@@ -8,7 +8,7 @@ import 'package:nexus_mobile/shell/phone_bar.dart';
 import '../support/fakes.dart';
 
 class _FixedPlayer extends PlayerController {
-  _FixedPlayer(this.playing);
+  new(this.playing);
 
   final bool playing;
 

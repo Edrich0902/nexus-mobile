@@ -23,7 +23,7 @@ GoRoute fadeRoute(String path, Widget Function(GoRouterState state) build, {List
     GoRoute(path: path, pageBuilder: (_, s) => fadeThroughPage(s, build(s)), routes: routes);
 
 class _FadeThrough extends StatelessWidget {
-  const _FadeThrough({required this.animation, required this.child});
+  const new({required this.animation, required this.child});
 
   /// The old content is gone by here; the new content starts after it.
   static const _handover = .35;

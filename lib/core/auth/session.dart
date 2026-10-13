@@ -4,9 +4,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Sanctum bearer token + expiry. Stored only in the Keychain / Keystore.
 class AuthSession {
-  const AuthSession({required this.token, required this.expiresAt});
+  const new({required this.token, required this.expiresAt});
 
-  factory AuthSession.fromJson(Map<String, dynamic> json) => AuthSession(
+  factory fromJson(Map<String, dynamic> json) => AuthSession(
     token: json['token'] as String,
     expiresAt: DateTime.tryParse(json['expires_at'] as String? ?? '')?.toUtc(),
   );
@@ -27,7 +27,7 @@ class AuthSession {
 }
 
 class SessionStore {
-  SessionStore([FlutterSecureStorage? storage])
+  new([FlutterSecureStorage? storage])
     : _storage =
           storage ??
           const FlutterSecureStorage(

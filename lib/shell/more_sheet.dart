@@ -48,7 +48,7 @@ Future<void> showMoreSheet(BuildContext context, String location) {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.dest, required this.active, required this.onTap});
+  const new({required this.dest, required this.active, required this.onTap});
 
   final Destination dest;
   final bool active;

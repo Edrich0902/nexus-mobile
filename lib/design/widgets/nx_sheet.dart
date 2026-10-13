@@ -108,7 +108,7 @@ Future<bool> showNxConfirm(
 /// sign-out): first tap arms, the row swaps to a red confirm that disarms
 /// itself after 6 s with a draining bar.
 class NxArmedConfirm extends StatefulWidget {
-  const NxArmedConfirm({
+  const new({
     required this.label,
     required this.question,
     required this.confirmLabel,

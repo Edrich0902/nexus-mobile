@@ -17,7 +17,7 @@ const _tabs = [('tracks', 'Tracks'), ('artists', 'Artists'), ('albums', 'Albums'
 
 /// Web SpotifySearchView: tracks, artists, albums and playlists from Spotify.
 class SpotifySearchScreen extends ConsumerStatefulWidget {
-  const SpotifySearchScreen({this.initialQuery, super.key});
+  const new({this.initialQuery, super.key});
 
   final String? initialQuery;
 

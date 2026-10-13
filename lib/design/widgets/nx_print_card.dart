@@ -21,7 +21,7 @@ enum PrintTone { busy, quiet, error }
 
 /// Everything a fingerprint card shows (web `PrintModel`).
 class PrintModel {
-  const PrintModel({
+  const new({
     required this.key,
     required this.route,
     required this.title,
@@ -82,7 +82,7 @@ class PrintModel {
 
 /// Fingerprint card (web NxPrintCard at phone width).
 class NxPrintCard extends ConsumerWidget {
-  const NxPrintCard({required this.print, required this.onTap, this.note, super.key});
+  const new({required this.print, required this.onTap, this.note, super.key});
 
   final PrintModel print;
   final VoidCallback onTap;
@@ -360,7 +360,7 @@ class NxPrintCard extends ConsumerWidget {
 }
 
 class _Status extends StatelessWidget {
-  const _Status({required this.text, required this.tone});
+  const new({required this.text, required this.tone});
 
   final String text;
   final PrintTone tone;
@@ -393,13 +393,7 @@ class _Status extends StatelessWidget {
 
 /// Shared-note filter above a collection of prints (web NxNoteFilter).
 class NxNoteFilter extends StatelessWidget {
-  const NxNoteFilter({
-    required this.options,
-    required this.value,
-    required this.onChanged,
-    this.label = 'Notes',
-    super.key,
-  });
+  const new({required this.options, required this.value, required this.onChanged, this.label = 'Notes', super.key});
 
   final List<String> options;
   final String? value;
@@ -429,7 +423,7 @@ class NxNoteFilter extends StatelessWidget {
 
 /// Collection of prints with the note filter (web CollectionPrints).
 class NxPrintCollection extends ConsumerStatefulWidget {
-  const NxPrintCollection({required this.prints, required this.onOpen, this.filterLabel = 'Notes', super.key});
+  const new({required this.prints, required this.onOpen, this.filterLabel = 'Notes', super.key});
 
   final List<PrintModel> prints;
   final ValueChanged<PrintModel> onOpen;

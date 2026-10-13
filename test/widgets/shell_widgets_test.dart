@@ -51,7 +51,7 @@ void main() {
         ),
       ),
     );
-    expect(tester.getSemantics(find.byType(NxPressable)), containsSemantics(isButton: true, label: 'Open wine'));
+    expect(tester.getSemantics(find.byType(NxPressable)), isSemantics(isButton: true, label: 'Open wine'));
     await tester.tap(find.text('Chryseia'));
     expect(taps, 1);
     handle.dispose();

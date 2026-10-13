@@ -25,7 +25,7 @@ const _daypartHours = {
 /// Web SpotifyStatsView: how you listen — top artists and tracks by range,
 /// dayparts, weekdays, on repeat, genres and the sound of your week.
 class SpotifyStatsScreen extends ConsumerStatefulWidget {
-  const SpotifyStatsScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<SpotifyStatsScreen> createState() => _SpotifyStatsScreenState();

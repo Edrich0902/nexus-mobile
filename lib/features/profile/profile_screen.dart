@@ -13,7 +13,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 
 /// Shared profile header + Details / Sessions pills (web ProfileLayoutView).
 class ProfileFrame extends ConsumerWidget {
-  const ProfileFrame({required this.tab, required this.children, this.onRefresh, super.key});
+  const new({required this.tab, required this.children, this.onRefresh, super.key});
 
   final String tab;
   final List<Widget> children;
@@ -81,7 +81,7 @@ class ProfileFrame extends ConsumerWidget {
 }
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();

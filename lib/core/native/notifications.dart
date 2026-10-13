@@ -11,7 +11,7 @@ final notificationsProvider = Provider<LocalNotifications>(LocalNotifications.ne
 /// On-device notifications: foreground pushes on Android and the ongoing F1
 /// session notification. Every notification carries a route as its payload.
 class LocalNotifications {
-  LocalNotifications(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   final plugin = FlutterLocalNotificationsPlugin();

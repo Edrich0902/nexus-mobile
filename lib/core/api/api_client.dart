@@ -19,7 +19,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 /// bearer auth, proactive token refresh, global 401 sign-out (except
 /// integration endpoints) and a shared 429 cooldown with retry.
 class ApiClient {
-  ApiClient(this._sessions, {Dio? dio})
+  new(this._sessions, {Dio? dio})
     : dio =
           dio ??
           Dio(
@@ -30,9 +30,7 @@ class ApiClient {
               headers: {'Accept': 'application/json'},
             ),
           ) {
-    this.dio.interceptors.add(
-      InterceptorsWrapper(onRequest: _onRequest, onError: _onError),
-    );
+    this.dio.interceptors.add(InterceptorsWrapper(onRequest: _onRequest, onError: _onError));
   }
 
   final Dio dio;

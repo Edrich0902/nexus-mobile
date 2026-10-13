@@ -98,7 +98,7 @@ final homeWidgetSyncProvider = Provider<HomeWidgetSync>((ref) {
 /// Mirrors now-playing, the next race and tonight's bottle into the native
 /// widget store. Writes are debounced and skipped when nothing changed.
 class HomeWidgetSync {
-  HomeWidgetSync(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   final _subs = <ProviderSubscription<Object?>>[];

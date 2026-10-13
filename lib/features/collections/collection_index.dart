@@ -18,7 +18,7 @@ import 'package:nexus_mobile/features/collections/prints.dart';
 /// The print list, its empty / no-match states and "Show more" paging for a
 /// [PageQuery] (web CollectionPrints inside IndexTemplate).
 class PagedPrints extends ConsumerWidget {
-  const PagedPrints({
+  const new({
     required this.query,
     required this.toPrint,
     required this.empty,
@@ -81,7 +81,7 @@ class PagedPrints extends ConsumerWidget {
 }
 
 class _PrintsSkeleton extends StatelessWidget {
-  const _PrintsSkeleton({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) => const Padding(
@@ -98,7 +98,7 @@ class _PrintsSkeleton extends StatelessWidget {
 
 /// Wine / beer / spirits index (web CellarView, BeerView, SpiritsView).
 class DrinkIndexScreen extends ConsumerStatefulWidget {
-  const DrinkIndexScreen({required this.kind, super.key});
+  const new({required this.kind, super.key});
 
   final DrinkKind kind;
 

@@ -12,11 +12,11 @@ import 'package:nexus_mobile/features/listening/spotify_api.dart';
 /// Spotify connection status (`/spotify/status`).
 final spotifyStatusProvider = FutureProvider<Json>((ref) async {
   if (ref.watch(authProvider) is! SignedIn) return const {};
-  return ref.watch(spotifyApiProvider).status();
+  return await ref.watch(spotifyApiProvider).status();
 });
 
 class PlayerState {
-  const PlayerState({
+  const new({
     this.playback,
     this.liked = const {},
     this.busy = false,

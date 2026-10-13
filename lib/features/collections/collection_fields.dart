@@ -6,7 +6,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 /// One summary tile above a collection (web `CollectionField`). [span] is in
 /// phone bento columns (1 or 2).
 class CollectionField {
-  const CollectionField({
+  const new({
     required this.key,
     required this.label,
     this.variant = FieldVariant.solid,
@@ -96,7 +96,7 @@ List<CollectionField> drinkFields({
 
 /// Colour fields above an index (web CollectionFields).
 class CollectionFields extends StatelessWidget {
-  const CollectionFields({required this.section, required this.fields, super.key});
+  const new({required this.section, required this.fields, super.key});
 
   final SectionKey section;
   final List<CollectionField> fields;

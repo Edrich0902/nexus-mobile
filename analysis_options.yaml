@@ -6,6 +6,9 @@ formatter:
 analyzer:
   exclude:
     - lib/**/*.g.dart
+    - build/**
+    - android/**
+    - ios/**
   language:
     strict-casts: true
     strict-raw-types: true
@@ -21,7 +24,6 @@ linter:
     flutter_style_todos: false
     avoid_positional_boolean_parameters: false
     avoid_catches_without_on_clauses: false
-    one_member_abstracts: false
     # Fire-and-forget is the norm for button callbacks and router calls.
     discarded_futures: false
     prefer_constructors_over_static_methods: false

@@ -11,9 +11,9 @@ import 'package:nexus_mobile/core/native/push.dart';
 
 @immutable
 class User {
-  const User({required this.id, required this.name, required this.email, this.media, this.createdAt});
+  const new({required this.id, required this.name, required this.email, this.media, this.createdAt});
 
-  factory User.fromJson(Json j) => User(
+  factory fromJson(Json j) => User(
     id: j.integer('id') ?? 0,
     name: j.text('name'),
     email: j.text('email'),
@@ -41,20 +41,20 @@ class User {
 }
 
 sealed class AuthState {
-  const AuthState();
+  const new();
 }
 
 class AuthUnknown extends AuthState {
-  const AuthUnknown();
+  const new();
 }
 
 class SignedOut extends AuthState {
-  const SignedOut({this.expired = false});
+  const new({this.expired = false});
   final bool expired;
 }
 
 class SignedIn extends AuthState {
-  const SignedIn(this.user);
+  const new(this.user);
   final User user;
 }
 

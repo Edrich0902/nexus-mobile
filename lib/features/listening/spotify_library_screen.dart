@@ -13,7 +13,7 @@ import 'package:nexus_mobile/features/listening/spotify_browse.dart';
 /// Web SpotifyLibraryView: liked songs, saved albums and followed artists,
 /// 30 at a time.
 class SpotifyLibraryScreen extends ConsumerStatefulWidget {
-  const SpotifyLibraryScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<SpotifyLibraryScreen> createState() => _SpotifyLibraryScreenState();

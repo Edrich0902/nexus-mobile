@@ -14,7 +14,7 @@ final mediaUploaderProvider = Provider<MediaUploader>((ref) => MediaUploader(ref
 /// server-held credentials and applies the `nexus_master` incoming transform.
 /// The app never holds a Cloudinary key or an unsigned preset.
 class MediaUploader {
-  MediaUploader(this._api);
+  new(this._api);
 
   final ApiClient _api;
 
@@ -50,8 +50,7 @@ class MediaUploader {
     return out == null ? source : File(out.path);
   }
 
-  Future<MultipartFile> multipart(File file) async =>
-      MultipartFile.fromFile(file.path, filename: file.uri.pathSegments.last);
+  Future<MultipartFile> multipart(File file) => MultipartFile.fromFile(file.path, filename: file.uri.pathSegments.last);
 
   /// `POST /media` — returns the MediaAsset JSON.
   Future<Json> upload(

@@ -158,7 +158,7 @@ Future<void> syncSpotify(BuildContext context, WidgetRef ref) async {
 /// ListeningNav). The Now stage carries its own queue button, so the queue
 /// shortcut sits beside the nav on the other pages only.
 class ListeningNav extends StatelessWidget {
-  const ListeningNav({required this.value, super.key});
+  const new({required this.value, super.key});
 
   final String value;
 
@@ -188,7 +188,7 @@ class ListeningNav extends StatelessWidget {
 
 /// Shown on any listening page while Spotify isn't linked.
 class ConnectSpotifyState extends ConsumerWidget {
-  const ConnectSpotifyState({this.title = 'Connect Spotify first', this.body, super.key});
+  const new({this.title = 'Connect Spotify first', this.body, super.key});
 
   final String title;
   final String? body;
@@ -205,7 +205,7 @@ class ConnectSpotifyState extends ConsumerWidget {
 
 /// Spotify-green mark for the not-connected stage.
 class SpotifyMark extends StatelessWidget {
-  const SpotifyMark({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -221,7 +221,7 @@ class SpotifyMark extends StatelessWidget {
 
 /// Track rows with liked-state refreshed for whatever is on screen.
 class TrackList extends ConsumerStatefulWidget {
-  const TrackList({
+  const new({
     required this.tracks,
     this.meta,
     this.reason,

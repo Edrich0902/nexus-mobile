@@ -32,7 +32,7 @@ Map<String, Handler> _spotify({Handler? contains}) => {
 /// Rebuilds a fresh (but identical) track list on every player change, the
 /// way the Listening screen builds its sections.
 class _FreshTracks extends ConsumerWidget {
-  const _FreshTracks();
+  const new();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

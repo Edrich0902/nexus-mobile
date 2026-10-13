@@ -13,7 +13,7 @@ import 'package:nexus_mobile/features/home/home_modules.dart';
 
 /// Shown on every Code page until GitHub is linked.
 class ConnectGithubState extends ConsumerWidget {
-  const ConnectGithubState({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => NxEmptyState(
@@ -30,7 +30,7 @@ class ConnectGithubState extends ConsumerWidget {
 /// Web GithubView: open pull requests headline, recent commits, the PR inbox
 /// and every synced repository.
 class GithubScreen extends ConsumerStatefulWidget {
-  const GithubScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<GithubScreen> createState() => _GithubScreenState();
@@ -100,10 +100,7 @@ class _GithubScreenState extends ConsumerState<GithubScreen> {
       final latest = repos
           .map((r) => r.date('pushed_at'))
           .nonNulls
-          .fold<DateTime?>(
-            null,
-            (best, at) => best == null || at.isAfter(best) ? at : best,
-          );
+          .fold<DateTime?>(null, (best, at) => best == null || at.isAfter(best) ? at : best);
       final count = plural(repos.length, 'repository', 'repositories');
       return latest == null ? '$count synced from GitHub.' : '$count, last pushed ${relativeTime(latest)}.';
     }();
@@ -124,12 +121,7 @@ class _GithubScreenState extends ConsumerState<GithubScreen> {
         variant: FieldVariant.tint,
         to: '/github/pulls',
       ),
-      CollectionField(
-        key: 'merged',
-        label: 'Recently merged',
-        value: '${merged.length}',
-        variant: FieldVariant.tint,
-      ),
+      CollectionField(key: 'merged', label: 'Recently merged', value: '${merged.length}', variant: FieldVariant.tint),
       if (latest != null)
         CollectionField(
           key: 'latest',

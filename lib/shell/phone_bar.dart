@@ -16,7 +16,7 @@ import 'package:nexus_mobile/shell/more_sheet.dart';
 
 /// Web NxDock at ≤640px: Spotify strip above a five-tab bar.
 class PhoneBar extends ConsumerWidget {
-  const PhoneBar({required this.location, super.key});
+  const new({required this.location, super.key});
 
   final String location;
 
@@ -82,7 +82,7 @@ class PhoneBar extends ConsumerWidget {
 /// A tab: the active one sits on a tinted pill that grows in, and its icon
 /// gives a small spring when it becomes active.
 class _Tab extends StatefulWidget {
-  const _Tab({required this.icon, required this.label, required this.active, required this.onTap});
+  const new({required this.icon, required this.label, required this.active, required this.onTap});
 
   final IconData icon;
   final String label;
@@ -166,7 +166,7 @@ class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
 }
 
 class _Strip extends ConsumerWidget {
-  const _Strip({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -255,7 +255,7 @@ class _Strip extends ConsumerWidget {
 /// timer (about 7 frames a second) instead of a vsync ticker, so a playing
 /// track doesn't keep the whole screen, blurs included, redrawing at 60fps.
 class NxEqualiser extends StatefulWidget {
-  const NxEqualiser({super.key});
+  const new({super.key});
 
   static const step = Duration(milliseconds: 140);
 
@@ -272,7 +272,7 @@ class _NxEqualiserState extends State<NxEqualiser> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || !TickerMode.of(context);
+    final still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || !TickerMode.valuesOf(context).enabled;
     if (still) {
       _timer?.cancel();
       _timer = null;

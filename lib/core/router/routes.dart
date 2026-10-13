@@ -159,9 +159,7 @@ final appRoutes = <RouteBase>[
   GoRoute(
     path: '/sports',
     redirect: (_, s) => s.uri.path == '/sports' || s.uri.path == '/sports/' ? '/sports/football' : null,
-    routes: [
-      fadeRoute(':sport', (s) => SportScreen(sport: s.pathParameters['sport'] ?? 'football')),
-    ],
+    routes: [fadeRoute(':sport', (s) => SportScreen(sport: s.pathParameters['sport'] ?? 'football'))],
   ),
   fadeRoute(
     '/github',
@@ -211,10 +209,7 @@ final rootRoutes = <RouteBase>[
     pageBuilder: (_, s) => MaterialPage(
       key: s.pageKey,
       fullscreenDialog: true,
-      child: CaptureScreen(
-        kind: s.uri.queryParameters['kind'],
-        barcode: s.uri.queryParameters['mode'] == 'barcode',
-      ),
+      child: CaptureScreen(kind: s.uri.queryParameters['kind'], barcode: s.uri.queryParameters['mode'] == 'barcode'),
     ),
   ),
 ];

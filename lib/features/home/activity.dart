@@ -6,7 +6,7 @@ import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/features/home/hub_api.dart';
 
 class ActivityState {
-  const ActivityState({this.items = const [], this.cursor, this.loadingMore = false});
+  const new({this.items = const [], this.cursor, this.loadingMore = false});
 
   final List<Json> items;
   final String? cursor;

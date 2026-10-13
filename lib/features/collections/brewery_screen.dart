@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// One brewery and the beers you've linked to it (web BeerBreweryView).
 class BreweryScreen extends ConsumerWidget {
-  const BreweryScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final int id;
 

@@ -9,7 +9,7 @@ import 'package:nexus_mobile/features/f1/f1_widgets.dart';
 
 /// Web F1MeetingView: a race weekend with its timeline, sessions and facts.
 class F1MeetingScreen extends ConsumerWidget {
-  const F1MeetingScreen({required this.meetingKey, super.key});
+  const new({required this.meetingKey, super.key});
 
   final int meetingKey;
 
@@ -42,10 +42,10 @@ class F1MeetingScreen extends ConsumerWidget {
             final eyebrow = [
               if (i >= 0) 'Round ${i + 1} of ${list.length}',
               ?m.str('country_name'),
-              if (phase != SessionState.done && focus != null)
-                cd == null
-                    ? '${focus.text('session_name')} live'
-                    : '${focus.text('session_name')} in ${cd.$1.replaceAll(RegExp(r',$'), '')}',
+              if (phase != SessionState.done && focus != null && cd == null)
+                '${focus.text('session_name')} live'
+              else if (phase != SessionState.done && focus != null && cd != null)
+                '${focus.text('session_name')} in ${cd.$1.replaceAll(RegExp(r',$'), '')}',
             ].join(' · ');
 
             return Column(
@@ -106,7 +106,7 @@ class F1MeetingScreen extends ConsumerWidget {
 }
 
 class _SessionRow extends StatelessWidget {
-  const _SessionRow({required this.session, required this.now, required this.first});
+  const new({required this.session, required this.now, required this.first});
 
   final Json session;
   final DateTime now;

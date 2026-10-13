@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 
 /// Human-readable error from an API failure, mirroring web `api-error.ts`.
 class ApiError implements Exception {
-  const ApiError(this.message, {this.status, this.fieldErrors = const {}, this.retryAfter});
+  const new(this.message, {this.status, this.fieldErrors = const {}, this.retryAfter});
 
-  factory ApiError.from(Object error, [String fallback = 'Something went wrong.']) {
+  factory from(Object error, [String fallback = 'Something went wrong.']) {
     if (error is ApiError) return error;
     if (error is DioException) {
       final res = error.response;

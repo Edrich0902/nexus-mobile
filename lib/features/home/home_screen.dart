@@ -30,7 +30,7 @@ const _momentAmbient = <String, Ambient>{
 /// Home (web HomeView): "now" stage, serif summary, module fields, the
 /// activity stream and what's coming up.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -143,7 +143,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 class _NowStage extends ConsumerWidget {
-  const _NowStage({required this.now});
+  const new({required this.now});
 
   final Json now;
 
@@ -189,7 +189,7 @@ class _NowStage extends ConsumerWidget {
 }
 
 class _Stream extends ConsumerWidget {
-  const _Stream();
+  const new();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

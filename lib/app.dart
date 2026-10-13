@@ -9,7 +9,7 @@ import 'package:nexus_mobile/shell/native_bootstrap.dart';
 import 'package:nexus_mobile/shell/update_gate.dart';
 
 class NexusApp extends ConsumerWidget {
-  const NexusApp({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

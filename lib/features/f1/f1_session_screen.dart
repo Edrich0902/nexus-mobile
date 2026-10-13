@@ -42,7 +42,7 @@ String? weatherRange(List<Json> samples, String key, String unit) {
 
 /// Web F1SessionView: winner headline, podium, and tabbed timing data.
 class F1SessionScreen extends ConsumerStatefulWidget {
-  const F1SessionScreen({required this.sessionKey, super.key});
+  const new({required this.sessionKey, super.key});
 
   final int sessionKey;
 
@@ -100,11 +100,7 @@ class _F1SessionScreenState extends ConsumerState<F1SessionScreen> {
       if (detail.flag('detail_synced')) {
         final laps = results.fold<int>(0, (m, r) => math.max(m, r.integer('number_of_laps') ?? 0));
         final outs = results.where((r) => r.flag('dnf') || r.flag('dns') || r.flag('dsq')).length;
-        return '${[
-          '${results.length} drivers',
-          if (laps > 0) '$laps laps',
-          if (outs > 0) '$outs did not finish',
-        ].join(' · ')}.';
+        return '${['${results.length} drivers', if (laps > 0) '$laps laps', if (outs > 0) '$outs did not finish'].join(' · ')}.';
       }
       if (detail.flag('detail_available')) return 'Session data is being prepared. Check back in a few minutes.';
       return 'Results arrive about 35 minutes after the session ends.';

@@ -47,7 +47,7 @@ final suggestionsProvider = FutureProvider.autoDispose<List<Json>>((ref) async {
 final kitchenApiProvider = Provider<KitchenApi>(KitchenApi.new);
 
 class KitchenApi {
-  KitchenApi(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   ApiClient get _api => _ref.read(apiClientProvider);

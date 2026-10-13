@@ -8,7 +8,7 @@ import 'package:nexus_mobile/design/palettes.dart';
 
 /// Artwork (label, cover, album art) tints the ambient, falling back to [fallback].
 class ArtAmbient extends ConsumerWidget {
-  const ArtAmbient({required this.child, this.media, this.url, this.fallback, super.key});
+  const new({required this.child, this.media, this.url, this.fallback, super.key});
 
   final MediaImage? media;
   final String? url;

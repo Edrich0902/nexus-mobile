@@ -8,7 +8,7 @@ import 'package:nexus_mobile/core/auth/auth.dart';
 /// key a provider family; empty filters are dropped.
 @immutable
 class PageQuery {
-  PageQuery(this.path, [Map<String, Object?> params = const {}])
+  new(this.path, [Map<String, Object?> params = const {}])
     : params = Map.unmodifiable({
         for (final e in params.entries)
           if (e.value != null && e.value != '' && e.value != false) e.key: e.value,
@@ -31,7 +31,7 @@ class PageQuery {
 
 @immutable
 class PagedState {
-  const PagedState({
+  const new({
     required this.items,
     required this.page,
     required this.lastPage,
@@ -62,7 +62,7 @@ class PagedState {
 final pagedProvider = AsyncNotifierProvider.autoDispose.family<PagedList, PagedState, PageQuery>(PagedList.new);
 
 class PagedList extends AsyncNotifier<PagedState> {
-  PagedList(this.query);
+  new(this.query);
 
   final PageQuery query;
 

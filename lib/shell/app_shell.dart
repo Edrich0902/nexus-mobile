@@ -14,7 +14,7 @@ const topBarHeight = 54.0;
 /// The authed frame (web AppLayout at ≤640px): blurred top bar, scrolling
 /// page underneath, and the phone bar with the Spotify strip.
 class AppShell extends ConsumerStatefulWidget {
-  const AppShell({required this.location, required this.child, super.key});
+  const new({required this.location, required this.child, super.key});
 
   final String location;
   final Widget child;

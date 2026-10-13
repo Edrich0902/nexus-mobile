@@ -15,7 +15,7 @@ enum FieldVariant { solid, tint, outline, surface }
 /// A colour field (web NxField): a solid, saturated block with a small label
 /// row and an oversized display value. Lives inside [NxBento].
 class NxField extends StatelessWidget with BentoItem {
-  const NxField({
+  const new({
     this.bg,
     this.ink,
     this.variant = FieldVariant.solid,
@@ -70,11 +70,7 @@ class NxField extends StatelessWidget with BentoItem {
     final content = Container(
       constraints: BoxConstraints(minHeight: minHeight),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(NxRadius.xl),
-        border: border,
-      ),
+      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(NxRadius.xl), border: border),
       child: DefaultTextStyle(
         style: NxText.sans(color: fg),
         child: Column(
@@ -166,7 +162,7 @@ enum _LabelSlot { label, aside }
 /// object rather than a LayoutBuilder so it still answers the bento's
 /// intrinsic-height queries.
 class _LabelRow extends SlottedMultiChildRenderObjectWidget<_LabelSlot, RenderBox> {
-  const _LabelRow({required this.label, required this.aside});
+  const new({required this.label, required this.aside});
 
   final Widget label;
   final Widget aside;

@@ -6,7 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 /// `GET /v1/meta`: version gate, feature flags and Cloudinary delivery config.
 class AppMeta {
-  const AppMeta({
+  const new({
     required this.minVersion,
     required this.latestVersion,
     required this.features,

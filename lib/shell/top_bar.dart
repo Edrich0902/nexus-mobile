@@ -24,7 +24,7 @@ Destination sectionDestination(String path) {
 }
 
 class TopBar extends ConsumerWidget {
-  const TopBar({required this.location, super.key});
+  const new({required this.location, super.key});
 
   final String location;
 

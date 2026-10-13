@@ -21,7 +21,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 /// Sign in (web LoginView): clock eyebrow, "Good *evening*." and a quiet form.
 /// The ambient follows the local time of day — nothing personal pre-auth.
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -146,10 +146,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            'Sign in to pick up where you left off.',
-                            style: NxText.sans(size: 16, color: c.ink2),
-                          ),
+                          Text('Sign in to pick up where you left off.', style: NxText.sans(size: 16, color: c.ink2)),
                         ],
                       ),
                     ),
@@ -231,7 +228,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 }
 
 class _Note extends StatelessWidget {
-  const _Note({required this.icon, required this.text, this.error = false});
+  const new({required this.icon, required this.text, this.error = false});
 
   final IconData icon;
   final String text;

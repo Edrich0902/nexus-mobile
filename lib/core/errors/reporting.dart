@@ -31,8 +31,8 @@ abstract final class Reporting {
   static SentryEvent? _scrub(SentryEvent event, Hint hint) {
     final req = event.request;
     if (req == null) return event;
-    final headers = Map<String, String>.from(req.headers)..removeWhere((k, _) => k.toLowerCase() == 'authorization');
-    return event.copyWith(request: req.copyWith(headers: headers));
+    req.headers = Map<String, String>.from(req.headers)..removeWhere((k, _) => k.toLowerCase() == 'authorization');
+    return event;
   }
 
   static void capture(Object error, [StackTrace? stack]) {

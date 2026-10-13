@@ -9,7 +9,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppLockState {
-  const AppLockState({this.enabled = false, this.locked = false, this.supported = false});
+  const new({this.enabled = false, this.locked = false, this.supported = false});
 
   final bool enabled;
   final bool locked;
@@ -96,7 +96,7 @@ class AppLockController extends Notifier<AppLockState> {
 
 /// Covers the app while locked (and only while signed in).
 class AppLockGate extends ConsumerWidget {
-  const AppLockGate({required this.child, super.key});
+  const new({required this.child, super.key});
 
   final Widget child;
 

@@ -7,7 +7,7 @@ import 'package:nexus_mobile/design/widgets/nx_controls.dart';
 /// One event on a timeline (web NxStreamItem): mono time, a coloured node on
 /// the rail, and a card with a coloured kind label, title, body and chips.
 class NxStreamItem extends StatelessWidget {
-  const NxStreamItem({
+  const new({
     required this.time,
     required this.title,
     this.color,
@@ -147,7 +147,7 @@ class NxStreamItem extends StatelessWidget {
 }
 
 class _RailPainter extends CustomPainter {
-  _RailPainter({required this.line, required this.node, required this.halo});
+  new({required this.line, required this.node, required this.halo});
 
   final Color line;
   final Color node;
@@ -167,7 +167,7 @@ class _RailPainter extends CustomPainter {
 
 /// Day / group label inside a stream (web NxStreamGroup).
 class NxStreamGroup extends StatelessWidget {
-  const NxStreamGroup(this.label, {super.key});
+  const new(this.label, {super.key});
 
   final String label;
 

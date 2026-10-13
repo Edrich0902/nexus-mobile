@@ -44,7 +44,7 @@ final pushProvider = Provider<PushNotifications>((ref) {
 /// FCM registration against `POST /devices`. Without Firebase config this
 /// quietly does nothing, so dev builds run without a Firebase project.
 class PushNotifications {
-  PushNotifications(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   final _subs = <StreamSubscription<Object?>>[];
@@ -95,7 +95,7 @@ class PushNotifications {
         await Future<void>.delayed(const Duration(seconds: 2));
       }
     }
-    return messaging.getToken();
+    return await messaging.getToken();
   }
 
   Future<void> _register(String token) async {

@@ -19,7 +19,7 @@ String? shortcutPath(String? type) => appShortcuts.where((s) => s.type == type).
 final shortcutsProvider = Provider<AppShortcuts>(AppShortcuts.new);
 
 class AppShortcuts {
-  AppShortcuts(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   bool _started = false;

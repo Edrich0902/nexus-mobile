@@ -12,7 +12,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/hub_api.dart';
 
 class CommandItem {
-  const CommandItem({
+  const new({
     required this.id,
     required this.label,
     required this.group,
@@ -114,7 +114,7 @@ Future<void> showSearchSheet(BuildContext context, {String initial = ''}) =>
     showNxSheet<void>(context, expand: true, builder: (_) => _SearchBody(initial: initial));
 
 class _SearchBody extends ConsumerStatefulWidget {
-  const _SearchBody({required this.initial});
+  const new({required this.initial});
 
   final String initial;
 
@@ -249,7 +249,7 @@ class _SearchBodyState extends ConsumerState<_SearchBody> {
 }
 
 class _Row extends StatelessWidget {
-  const _Row({required this.item, required this.query, required this.onTap});
+  const new({required this.item, required this.query, required this.onTap});
 
   final CommandItem item;
   final String query;
@@ -297,7 +297,7 @@ class _Row extends StatelessWidget {
 }
 
 class _Highlight extends StatelessWidget {
-  const _Highlight({required this.text, required this.query});
+  const new({required this.text, required this.query});
 
   final String text;
   final String query;

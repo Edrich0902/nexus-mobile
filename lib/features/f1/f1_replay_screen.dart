@@ -15,7 +15,7 @@ enum _Tone { info, warn, bad }
 /// Web F1ReplayView: the track replay, its sync state and the focused car's
 /// telemetry. Polls while the replay is pending or still filling in.
 class F1ReplayScreen extends ConsumerStatefulWidget {
-  const F1ReplayScreen({required this.sessionKey, super.key});
+  const new({required this.sessionKey, super.key});
 
   final int sessionKey;
 

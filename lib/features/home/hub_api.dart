@@ -21,7 +21,7 @@ final hubApiProvider = Provider<HubApi>((ref) => HubApi(ref.watch(apiClientProvi
 
 /// Mirrors web `services/hub.service.ts`.
 class HubApi {
-  HubApi(this._api);
+  new(this._api);
 
   final ApiClient _api;
 
@@ -52,5 +52,5 @@ String? searchItemPath(Json item) {
 /// The single most relevant "moment" (music, race, tonight's bottle, greeting).
 final nowProvider = FutureProvider<Json>((ref) async {
   if (ref.watch(authProvider) is! SignedIn) return const {};
-  return ref.watch(hubApiProvider).now();
+  return await ref.watch(hubApiProvider).now();
 });

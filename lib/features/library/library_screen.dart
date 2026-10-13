@@ -22,7 +22,7 @@ import 'package:nexus_mobile/features/library/library_helpers.dart';
 /// Library index (web LibraryView): the book you're reading on the stage,
 /// shelf counts, a status filter and the shelf as prints.
 class LibraryScreen extends ConsumerStatefulWidget {
-  const LibraryScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
@@ -154,7 +154,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with DebouncedSea
 }
 
 class _ReadingStage extends StatelessWidget {
-  const _ReadingStage({required this.book, required this.finishing, required this.onFinish, required this.onAdd});
+  const new({required this.book, required this.finishing, required this.onFinish, required this.onAdd});
 
   final Json book;
   final bool finishing;

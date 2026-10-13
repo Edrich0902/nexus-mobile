@@ -89,14 +89,9 @@ Json asJson(dynamic data) => data is Map ? data.cast<String, dynamic>() : <Strin
 
 /// Laravel paginator envelope.
 class Page<T> {
-  const Page({
-    required this.items,
-    required this.currentPage,
-    required this.lastPage,
-    required this.total,
-  });
+  const new({required this.items, required this.currentPage, required this.lastPage, required this.total});
 
-  factory Page.fromJson(Json json, T Function(Json) map) {
+  factory fromJson(Json json, T Function(Json) map) {
     final meta = json.obj('meta') ?? json;
     return Page(
       items: asJsonList(json['data']).map(map).toList(),

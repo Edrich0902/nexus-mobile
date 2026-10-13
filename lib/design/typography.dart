@@ -37,11 +37,8 @@ abstract final class NxText {
 
   static TextStyle eyebrow(BuildContext context) => sans(size: 13, weight: FontWeight.w500, color: context.nx.acc);
 
-  static TextStyle label(BuildContext context, {double size = 12}) => sans(
-    size: size,
-    weight: FontWeight.w600,
-    color: context.nx.ink3,
-  ).copyWith(letterSpacing: .08 * size);
+  static TextStyle label(BuildContext context, {double size = 12}) =>
+      sans(size: size, weight: FontWeight.w600, color: context.nx.ink3).copyWith(letterSpacing: .08 * size);
 
   static TextStyle muted(BuildContext context, {double size = 13}) => sans(size: size, color: context.nx.ink3);
 }

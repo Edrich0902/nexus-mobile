@@ -49,7 +49,7 @@ String? describeAgent(String? ua) {
 }
 
 class SessionsScreen extends ConsumerWidget {
-  const SessionsScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,7 +94,7 @@ class SessionsScreen extends ConsumerWidget {
 }
 
 class _SessionRow extends ConsumerWidget {
-  const _SessionRow({required this.session});
+  const new({required this.session});
 
   final Json session;
 

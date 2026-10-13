@@ -42,7 +42,7 @@ final breweryBeersProvider = FutureProvider.autoDispose.family<List<Json>, int>(
 final drinksApiProvider = Provider<DrinksApi>(DrinksApi.new);
 
 class DrinksApi {
-  DrinksApi(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   ApiClient get _api => _ref.read(apiClientProvider);

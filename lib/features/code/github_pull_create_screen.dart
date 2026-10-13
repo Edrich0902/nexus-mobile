@@ -14,7 +14,7 @@ final _compareProvider = FutureProvider.autoDispose.family<Json, (RepoKey, Strin
 
 /// Web GithubPullCreateView: pick base / head, see the comparison, open the PR.
 class GithubPullCreateScreen extends ConsumerStatefulWidget {
-  const GithubPullCreateScreen({required this.owner, required this.repo, this.head, super.key});
+  const new({required this.owner, required this.repo, this.head, super.key});
 
   final String owner;
   final String repo;
@@ -98,12 +98,7 @@ class _GithubPullCreateScreenState extends ConsumerState<GithubPullCreateScreen>
     final lede = () {
       if (!_comparable) return 'Choose two different branches to compare.';
       if (r == null) return 'Merging $_head into $_base.';
-      return '${[
-        'Merging $_head into $_base',
-        if (r.integer('total_commits') case final n?) plural(n, 'commit'),
-        plural(r.list('files').length, 'file'),
-        if ((r.integer('behind_by') ?? 0) > 0) '${r.integer('behind_by')} behind',
-      ].join(' · ')}.';
+      return '${['Merging $_head into $_base', if (r.integer('total_commits') case final n?) plural(n, 'commit'), plural(r.list('files').length, 'file'), if ((r.integer('behind_by') ?? 0) > 0) '${r.integer('behind_by')} behind'].join(' · ')}.';
     }();
 
     final options = [for (final b in branchesAsync.value ?? const <Json>[]) (b.text('name'), b.text('name'))];

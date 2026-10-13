@@ -35,7 +35,7 @@ final pairingOptionsProvider =
 
 /// Food & drink pairings (web FoodDrinkPairingsView).
 class PairingsScreen extends ConsumerWidget {
-  const PairingsScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,9 +58,7 @@ class PairingsScreen extends ConsumerWidget {
           title: 'Pairings',
           accent: 'that worked',
           lede: 'Which bottle went with which dish — and the ones worth trying next.',
-          actions: [
-            NxButton('Save a pairing', icon: LucideIcons.plus, onPressed: () => showPairingSheet(context)),
-          ],
+          actions: [NxButton('Save a pairing', icon: LucideIcons.plus, onPressed: () => showPairingSheet(context))],
         ),
         const SizedBox(height: 22),
         const FoodDrinkNav(value: 'pairings'),
@@ -81,9 +79,7 @@ class PairingsScreen extends ConsumerWidget {
                     onAction: () => showPairingSheet(context),
                   )
                 : Column(
-                    children: [
-                      for (var i = 0; i < list.length; i++) _PairingRow(pairing: list[i], first: i == 0),
-                    ],
+                    children: [for (var i = 0; i < list.length; i++) _PairingRow(pairing: list[i], first: i == 0)],
                   ),
           ),
         const NxSectionHeader('Worth trying'),
@@ -149,7 +145,7 @@ class PairingsScreen extends ConsumerWidget {
 }
 
 class _PairingRow extends ConsumerWidget {
-  const _PairingRow({required this.pairing, required this.first});
+  const new({required this.pairing, required this.first});
 
   final Json pairing;
   final bool first;
@@ -234,7 +230,7 @@ Future<void> showPairingSheet(BuildContext context, {PairingPreset? preset}) => 
 );
 
 class _PairingForm extends ConsumerStatefulWidget {
-  const _PairingForm({this.preset});
+  const new({this.preset});
 
   final PairingPreset? preset;
 

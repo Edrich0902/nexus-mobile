@@ -60,10 +60,7 @@ void main() {
       // A 3:4 grid tile.
       expect(MediaVariant.forBox(width: 174, height: 232, devicePixelRatio: 3), MediaVariant.hero);
       // Contained art shows the whole image, so any crop is visible.
-      expect(
-        MediaVariant.forBox(width: 300, height: 200, devicePixelRatio: 3, fit: BoxFit.contain),
-        MediaVariant.hero,
-      );
+      expect(MediaVariant.forBox(width: 300, height: 200, devicePixelRatio: 3, fit: BoxFit.contain), MediaVariant.hero);
       expect(MediaVariant.forBox(width: 300, height: double.infinity, devicePixelRatio: 3), MediaVariant.hero);
     });
   });

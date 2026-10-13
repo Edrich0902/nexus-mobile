@@ -12,7 +12,7 @@ import 'package:nexus_mobile/features/sports/sports.dart';
 /// Web SportView: the next fixture (or latest result) as the headline, then
 /// fixtures, results, majors, league tables and followed competitions.
 class SportScreen extends ConsumerStatefulWidget {
-  const SportScreen({required this.sport, super.key});
+  const new({required this.sport, super.key});
 
   final String sport;
 

@@ -31,9 +31,7 @@ Future<GoRouter> _app(WidgetTester tester, List<RouteBase> routes, {String initi
     initialLocation: initial,
     routes: [ShellRoute(builder: (_, _, child) => child, routes: routes)],
   );
-  await tester.pumpWidget(
-    MaterialApp.router(theme: buildNexusTheme(SectionKey.home.ambient), routerConfig: router),
-  );
+  await tester.pumpWidget(MaterialApp.router(theme: buildNexusTheme(SectionKey.home.ambient), routerConfig: router));
   await tester.pumpAndSettle();
   return router;
 }

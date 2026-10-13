@@ -16,7 +16,7 @@ import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 /// Empty state (web NxEmptyState): icon tile, serif title, body, action.
 class NxEmptyState extends StatelessWidget {
-  const NxEmptyState({
+  const new({
     required this.title,
     this.body,
     this.icon = LucideIcons.sparkles,
@@ -71,7 +71,7 @@ class NxEmptyState extends StatelessWidget {
 }
 
 class NxErrorState extends StatelessWidget {
-  const NxErrorState({required this.error, this.onRetry, this.compact = false, super.key});
+  const new({required this.error, this.onRetry, this.compact = false, super.key});
 
   final Object error;
   final VoidCallback? onRetry;
@@ -94,7 +94,7 @@ class NxErrorState extends StatelessWidget {
 /// Placeholder block with a soft highlight sweeping across. Every skeleton
 /// shares one wall-clock phase, so a page of them shimmers in step.
 class NxSkeleton extends StatefulWidget {
-  const NxSkeleton({this.width, this.height = 16, this.radius = NxRadius.sm, super.key});
+  const new({this.width, this.height = 16, this.radius = NxRadius.sm, super.key});
 
   final double? width;
   final double height;
@@ -160,7 +160,7 @@ class _NxSkeletonState extends State<NxSkeleton> with SingleTickerProviderStateM
 }
 
 class _Sweep extends GradientTransform {
-  const _Sweep(this.t);
+  const new(this.t);
 
   final double t;
 
@@ -171,7 +171,7 @@ class _Sweep extends GradientTransform {
 
 /// Generic page skeleton: stage + bento + rows.
 class NxPageSkeleton extends StatelessWidget {
-  const NxPageSkeleton({this.art = true, this.rows = 4, super.key});
+  const new({this.art = true, this.rows = 4, super.key});
 
   final bool art;
   final int rows;
@@ -211,7 +211,7 @@ class NxPageSkeleton extends StatelessWidget {
 /// Renders an [AsyncValue] with Nexus loading/error states, cross-fading
 /// between them. Keeps showing previous data while refreshing.
 class NxAsync<T> extends StatelessWidget {
-  const NxAsync({required this.value, required this.data, this.loading, this.onRetry, super.key});
+  const new({required this.value, required this.data, this.loading, this.onRetry, super.key});
 
   final AsyncValue<T> value;
   final Widget Function(T data) data;
@@ -241,7 +241,7 @@ NxToast? _activeToast;
 /// Handle to a shown toast; [close] dismisses it early (e.g. an upload
 /// finished).
 class NxToast {
-  NxToast._();
+  new _();
 
   OverlayEntry? _entry;
   final _closing = ValueNotifier(false);
@@ -302,7 +302,7 @@ NxToast showApiError(BuildContext context, Object error, [String fallback = 'Som
     showNxToast(context, ApiError.from(error, fallback).message, error: true);
 
 class _ToastView extends StatefulWidget {
-  const _ToastView({
+  const new({
     required this.toast,
     required this.colors,
     required this.message,

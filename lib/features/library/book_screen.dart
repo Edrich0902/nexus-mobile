@@ -14,7 +14,7 @@ import 'package:nexus_mobile/features/library/library_helpers.dart';
 /// One book (web LibraryBookView): cover-tinted stage with the next reading
 /// step, the description, your notes and the facts.
 class BookScreen extends ConsumerStatefulWidget {
-  const BookScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final int id;
 

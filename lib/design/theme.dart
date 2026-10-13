@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -111,7 +112,7 @@ ThemeData buildNexusTheme(Ambient ambient) {
 /// background of their own, so without one the outgoing page shows through
 /// the incoming one for the whole slide.
 class _OpaquePages extends PageTransitionsBuilder {
-  const _OpaquePages(this.inner);
+  const new(this.inner);
 
   final PageTransitionsBuilder inner;
 

@@ -15,7 +15,7 @@ final bookProvider = FutureProvider.autoDispose.family<Json, int>((ref, id) asyn
 final libraryApiProvider = Provider<LibraryApi>(LibraryApi.new);
 
 class LibraryApi {
-  LibraryApi(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   ApiClient get _api => _ref.read(apiClientProvider);

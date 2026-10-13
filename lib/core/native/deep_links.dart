@@ -39,7 +39,7 @@ final deepLinksProvider = Provider<DeepLinks>((ref) {
 /// Routes incoming links (cold start and while running) through go_router.
 /// The router's auth redirect keeps the target across sign-in.
 class DeepLinks {
-  DeepLinks(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   StreamSubscription<Uri>? _sub;

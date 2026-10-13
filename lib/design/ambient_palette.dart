@@ -6,12 +6,7 @@ import 'package:flutter/painting.dart';
 /// The four colours the whole UI is tinted by (mirrors web `Ambient`).
 @immutable
 class Ambient {
-  const Ambient({
-    required this.amb,
-    required this.amb2,
-    required this.acc,
-    required this.ink,
-  });
+  const new({required this.amb, required this.amb2, required this.acc, required this.ink});
 
   /// Page background.
   final Color amb;
@@ -25,12 +20,8 @@ class Ambient {
   /// Text colour on [amb].
   final Color ink;
 
-  Ambient copyWith({Color? amb, Color? amb2, Color? acc, Color? ink}) => Ambient(
-    amb: amb ?? this.amb,
-    amb2: amb2 ?? this.amb2,
-    acc: acc ?? this.acc,
-    ink: ink ?? this.ink,
-  );
+  Ambient copyWith({Color? amb, Color? amb2, Color? acc, Color? ink}) =>
+      Ambient(amb: amb ?? this.amb, amb2: amb2 ?? this.amb2, acc: acc ?? this.acc, ink: ink ?? this.ink);
 
   static Ambient lerp(Ambient a, Ambient b, double t) => Ambient(
     amb: Color.lerp(a.amb, b.amb, t)!,
@@ -50,7 +41,7 @@ class Ambient {
 /// Solid colour-field palette for a section (bg + legible text).
 @immutable
 class FieldColour {
-  const FieldColour({required this.bg, required this.ink});
+  const new({required this.bg, required this.ink});
 
   final Color bg;
   final Color ink;
@@ -104,11 +95,7 @@ Color? parseHex(String? hex) {
 /// Derive a legible dark ambient from artwork colours (mirrors web
 /// `ambientFromPalette`): background pushed toward black, accent lifted until
 /// it reads on that background.
-Ambient ambientFromPalette({
-  required Color dominant,
-  required Color vibrant,
-  required Color light,
-}) {
+Ambient ambientFromPalette({required Color dominant, required Color vibrant, required Color light}) {
   final amb = shade(dominant, -0.82);
   final amb2 = shade(dominant, -0.7);
   var acc = vibrant;
@@ -116,10 +103,5 @@ Ambient ambientFromPalette({
     acc = shade(acc, 0.2);
   }
   final ink = shade(light, 0.85);
-  return Ambient(
-    amb: amb,
-    amb2: amb2,
-    acc: acc,
-    ink: contrastRatio(ink, amb) >= 10 ? ink : const Color(0xFFF6EFE9),
-  );
+  return Ambient(amb: amb, amb2: amb2, acc: acc, ink: contrastRatio(ink, amb) >= 10 ? ink : const Color(0xFFF6EFE9));
 }

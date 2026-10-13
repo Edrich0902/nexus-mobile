@@ -19,7 +19,7 @@ final _githubSearchProvider = FutureProvider.autoDispose.family<Json, (String, S
 
 /// Web GithubSearchView: repositories, issues / PRs and code across GitHub.
 class GithubSearchScreen extends ConsumerStatefulWidget {
-  const GithubSearchScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<GithubSearchScreen> createState() => _GithubSearchScreenState();
