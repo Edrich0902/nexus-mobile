@@ -1,86 +1,193 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
-import 'package:nexus_mobile/design/ambient_palette.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/listening/live_position.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/player_sheet.dart';
 import 'package:nexus_mobile/shell/more_sheet.dart';
+import 'package:nexus_mobile/shell/search_sheet.dart';
 
-/// Web NxDock at ≤640px: Spotify strip above a five-tab bar.
+/// Floating glass dock (iOS 26 style, same on Android): a tab bar with a
+/// sliding lens beside a search orb, and the now-playing capsule above.
+/// When [collapsed] the tab bar shrinks to the active tab and the player
+/// slides down into the dock row between it and search.
 class PhoneBar extends ConsumerWidget {
-  const new({required this.location, super.key});
+  const new({required this.location, required this.collapsed, required this.onExpand, super.key});
 
   final String location;
+  final ValueListenable<bool> collapsed;
+  final VoidCallback onExpand;
 
-  static const tabsHeight = 58.0;
-  static const stripHeight = 54.0;
+  static const dockHeight = 62.0;
+  static const miniHeight = 54.0;
+  static const side = 14.0;
+  static const gap = 10.0;
+
+  /// Overshoots a touch before settling, like the system glass.
+  static const spring = Cubic(.32, 1.25, .45, 1);
+  static const springDuration = Duration(milliseconds: 550);
+
+  /// Sits in the home-indicator zone rather than above it; never flush
+  /// with the screen edge on devices without one.
+  static double dockBottom(MediaQueryData mq) => math.max(mq.padding.bottom - 10, 12);
+
+  /// Space pages leave free at the bottom so content can scroll clear.
+  static double inset(MediaQueryData mq, {required bool hasTrack}) =>
+      dockBottom(mq) + dockHeight + (hasTrack ? gap + miniHeight : 0) + 8;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.nx;
     final mq = MediaQuery.of(context);
     final hasTrack = ref.watch(playerProvider.select((p) => p.hasTrack));
-    final inTabs = Nav.phoneTabs.any((d) => Nav.isActive(d, location));
+    final duration = reduceMotion(context) ? Duration.zero : springDuration;
+    final bottom = dockBottom(mq);
 
-    return ClipRect(
-      child: BackdropFilter.grouped(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: EdgeInsets.only(bottom: mq.padding.bottom),
-          decoration: BoxDecoration(
-            color: mix(c.amb, .88, Colors.black).withValues(alpha: .94),
-            border: Border(top: BorderSide(color: c.line)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSize(
-                duration: const Duration(milliseconds: 260),
-                curve: NxMotion.ease,
-                child: NxSwitcher(
-                  child: hasTrack
-                      ? const _Strip(key: ValueKey('strip'))
-                      : const SizedBox(key: ValueKey('none'), width: double.infinity),
+    return LayoutBuilder(
+      builder: (context, box) {
+        final barWidth = box.maxWidth - side * 2 - dockHeight - gap;
+        return ValueListenableBuilder<bool>(
+          valueListenable: collapsed,
+          builder: (context, min, _) {
+            final miniSide = min ? side + dockHeight + gap : side;
+            return Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: duration,
+                  curve: spring,
+                  left: miniSide,
+                  right: miniSide,
+                  bottom: min ? bottom + (dockHeight - miniHeight) / 2 : bottom + dockHeight + gap,
+                  height: miniHeight,
+                  child: NxSwitcher(
+                    child: hasTrack
+                        ? _MiniPlayer(key: const ValueKey('mini'), compact: min)
+                        : const SizedBox.shrink(key: ValueKey('none')),
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: tabsHeight,
-                child: Row(
-                  children: [
-                    for (final d in Nav.phoneTabs)
-                      _Tab(
-                        icon: d.icon,
-                        label: d.label,
-                        active: Nav.isActive(d, location),
-                        onTap: () => context.go(d.to),
+                AnimatedPositioned(
+                  duration: duration,
+                  curve: spring,
+                  left: side,
+                  bottom: bottom,
+                  height: dockHeight,
+                  width: min ? dockHeight : barWidth,
+                  child: _TabBar(location: location, collapsed: min, fullWidth: barWidth, onExpand: onExpand),
+                ),
+                Positioned(
+                  right: side,
+                  bottom: bottom,
+                  width: dockHeight,
+                  height: dockHeight,
+                  child: Semantics(
+                    button: true,
+                    label: 'Search',
+                    excludeSemantics: true,
+                    child: NxPressable(
+                      onTap: () => showSearchSheet(context),
+                      scale: .92,
+                      child: NxGlass(
+                        child: Center(child: Icon(LucideIcons.search, size: 22, color: context.nx.ink)),
                       ),
-                    _Tab(
-                      icon: LucideIcons.sparkles,
-                      label: 'More',
-                      active: !inTabs,
-                      onTap: () => showMoreSheet(context, location),
                     ),
-                  ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _TabBar extends StatelessWidget {
+  const new({required this.location, required this.collapsed, required this.fullWidth, required this.onExpand});
+
+  final String location;
+  final bool collapsed;
+  final double fullWidth;
+  final VoidCallback onExpand;
+
+  static const _pad = 4.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.nx;
+    final tabs = [for (final d in Nav.phoneTabs) (d.icon, d.label, Nav.isActive(d, location), () => context.go(d.to))];
+    final inTabs = tabs.any((t) => t.$3);
+    tabs.add((LucideIcons.sparkles, 'More', !inTabs, () => showMoreSheet(context, location)));
+    final active = tabs.indexWhere((t) => t.$3);
+    final tabWidth = (fullWidth - _pad * 2) / tabs.length;
+    final duration = reduceMotion(context) ? Duration.zero : PhoneBar.springDuration;
+    final fade = reduceMotion(context) ? Duration.zero : NxTiming.fast;
+
+    return NxGlass(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          AnimatedPositioned(
+            duration: duration,
+            curve: PhoneBar.spring,
+            top: _pad,
+            bottom: _pad,
+            left: collapsed ? _pad : _pad + active * tabWidth,
+            width: collapsed ? PhoneBar.dockHeight - _pad * 2 : tabWidth,
+            child: const NxGlassLens(),
+          ),
+          IgnorePointer(
+            ignoring: collapsed,
+            child: AnimatedOpacity(
+              opacity: collapsed ? 0 : 1,
+              duration: fade,
+              child: OverflowBox(
+                alignment: Alignment.centerLeft,
+                minWidth: fullWidth,
+                maxWidth: fullWidth,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: _pad),
+                  child: Row(
+                    children: [
+                      for (final (icon, label, on, onTap) in tabs)
+                        _Tab(icon: icon, label: label, active: on, onTap: onTap),
+                    ],
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+          IgnorePointer(
+            ignoring: !collapsed,
+            child: AnimatedOpacity(
+              opacity: collapsed ? 1 : 0,
+              duration: fade,
+              child: Semantics(
+                button: true,
+                label: 'Show tabs',
+                excludeSemantics: true,
+                child: NxPressable(
+                  onTap: onExpand,
+                  scale: .9,
+                  child: Center(child: Icon(tabs[active].$1, size: 22, color: c.acc)),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// A tab: the active one sits on a tinted pill that grows in, and its icon
-/// gives a small spring when it becomes active.
+/// A tab: icon over label, accent when active, with a small spring on the
+/// icon as it becomes active. The lens behind it is drawn by [_TabBar].
 class _Tab extends StatefulWidget {
   const new({required this.icon, required this.label, required this.active, required this.onTap});
 
@@ -119,7 +226,7 @@ class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final c = context.nx;
     final active = widget.active;
-    final color = active ? c.acc : c.ink3;
+    final color = active ? c.acc : c.ink2;
     return Expanded(
       child: Semantics(
         button: true,
@@ -132,30 +239,19 @@ class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnimatedContainer(
-                duration: NxTiming.base,
-                curve: NxMotion.ease,
-                width: active ? 52 : 34,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: active ? c.acc.withValues(alpha: .16) : c.acc.withValues(alpha: 0),
-                  borderRadius: BorderRadius.circular(NxRadius.pill),
-                ),
-                alignment: Alignment.center,
-                child: ScaleTransition(
-                  scale: _scale,
-                  child: TweenAnimationBuilder<Color?>(
-                    tween: ColorTween(end: color),
-                    duration: NxTiming.base,
-                    builder: (_, value, _) => Icon(widget.icon, size: 20, color: value),
-                  ),
+              ScaleTransition(
+                scale: _scale,
+                child: TweenAnimationBuilder<Color?>(
+                  tween: ColorTween(end: color),
+                  duration: NxTiming.base,
+                  builder: (_, value, _) => Icon(widget.icon, size: 21, color: value),
                 ),
               ),
               const SizedBox(height: 3),
               AnimatedDefaultTextStyle(
                 duration: NxTiming.base,
-                style: NxText.sans(size: 11, weight: active ? FontWeight.w600 : FontWeight.w500, color: color),
-                child: Text(widget.label, maxLines: 1),
+                style: NxText.sans(size: 10.5, weight: FontWeight.w600, color: color),
+                child: Text(widget.label, maxLines: 1, overflow: TextOverflow.clip),
               ),
             ],
           ),
@@ -165,75 +261,89 @@ class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
   }
 }
 
-class _Strip extends ConsumerWidget {
-  const new({super.key});
+/// Now-playing capsule. [compact] is the docked form between the collapsed
+/// tab bar and search: no equaliser or skip, so the title keeps its room.
+class _MiniPlayer extends ConsumerWidget {
+  const new({required this.compact, super.key});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.nx;
     final p = ref.watch(playerProvider);
     final device = p.device?.str('name');
+    final player = ref.read(playerProvider.notifier);
     return Semantics(
       button: true,
       label: 'Now playing: ${p.title} by ${p.artists}. Open player',
-      child: InkWell(
+      child: NxPressable(
         onTap: () => showPlayerSheet(context),
-        child: Container(
-          height: PhoneBar.stripHeight,
-          padding: const EdgeInsets.fromLTRB(12, 8, 6, 6),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: c.line)),
-          ),
+        scale: .98,
+        child: NxGlass(
           child: Stack(
             children: [
-              Row(
-                children: [
-                  SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: AnimatedSwitcher(
-                      duration: NxTiming.page,
-                      child: NxImage(key: ValueKey(p.art), url: p.art, radius: 8, fallbackIcon: LucideIcons.music),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: NxSwitcher(
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                        key: ValueKey(p.uri),
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            p.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: NxText.sans(size: 13.5, weight: FontWeight.w600, color: c.ink),
-                          ),
-                          Text(
-                            [p.artists, ?device].where((s) => s.isNotEmpty).join(' · '),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: NxText.sans(size: 12, color: c.ink3),
-                          ),
-                        ],
+              Padding(
+                padding: EdgeInsets.only(left: 8, right: compact ? 4 : 6),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 38,
+                      height: 38,
+                      child: AnimatedSwitcher(
+                        duration: NxTiming.page,
+                        child: NxImage(key: ValueKey(p.art), url: p.art, radius: 19, fallbackIcon: LucideIcons.music),
                       ),
                     ),
-                  ),
-                  if (p.isPlaying) const Padding(padding: EdgeInsets.symmetric(horizontal: 6), child: NxEqualiser()),
-                  NxIconButton(
-                    p.isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    tooltip: p.isPlaying ? 'Pause' : 'Play',
-                    size: 34,
-                    onPressed: p.busy ? null : () => ref.read(playerProvider.notifier).toggle(),
-                  ),
-                ],
+                    SizedBox(width: compact ? 8 : 10),
+                    Expanded(
+                      child: NxSwitcher(
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          key: ValueKey(p.uri),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              p.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: NxText.sans(size: 13.5, weight: FontWeight.w600, color: c.ink),
+                            ),
+                            Text(
+                              [p.artists, ?device].where((s) => s.isNotEmpty).join(' · '),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: NxText.sans(size: compact ? 11 : 12, color: c.ink3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (p.isPlaying && !compact)
+                      const Padding(padding: EdgeInsets.symmetric(horizontal: 6), child: NxEqualiser()),
+                    NxIconButton(
+                      p.isPlaying ? LucideIcons.pause : LucideIcons.play,
+                      tooltip: p.isPlaying ? 'Pause' : 'Play',
+                      size: 36,
+                      color: c.ink,
+                      onPressed: p.busy ? null : player.toggle,
+                    ),
+                    if (!compact)
+                      NxIconButton(
+                        LucideIcons.skipForward,
+                        tooltip: 'Next track',
+                        size: 36,
+                        color: c.ink,
+                        onPressed: p.busy ? null : player.next,
+                      ),
+                  ],
+                ),
               ),
               Positioned(
-                left: -12,
-                right: -6,
-                bottom: -6,
+                left: 24,
+                right: 24,
+                bottom: 0,
                 child: LiveTrackPosition(
                   builder: (_, position, duration) => NxProgressRail(
                     value: duration == 0 ? 0 : position / duration,

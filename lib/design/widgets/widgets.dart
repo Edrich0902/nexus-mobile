@@ -6,6 +6,7 @@ export 'package:nexus_mobile/design/widgets/nx_data.dart';
 export 'package:nexus_mobile/design/widgets/nx_feedback.dart';
 export 'package:nexus_mobile/design/widgets/nx_field.dart';
 export 'package:nexus_mobile/design/widgets/nx_form.dart';
+export 'package:nexus_mobile/design/widgets/nx_glass.dart';
 export 'package:nexus_mobile/design/widgets/nx_layout.dart';
 export 'package:nexus_mobile/design/widgets/nx_media.dart';
 export 'package:nexus_mobile/design/widgets/nx_motion.dart';
