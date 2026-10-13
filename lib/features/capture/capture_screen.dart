@@ -3,12 +3,12 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/connectivity.dart';

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/config/app_config.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 

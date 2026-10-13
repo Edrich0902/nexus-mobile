@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 
 /// UI timings on top of the generated web [NxMotion] tokens: quick for

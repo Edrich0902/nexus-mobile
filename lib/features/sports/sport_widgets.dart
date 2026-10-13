@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/sports/sports.dart';

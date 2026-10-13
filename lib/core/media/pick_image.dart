@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/core/media/media_upload.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';

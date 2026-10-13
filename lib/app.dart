@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/auth/app_lock.dart';
 import 'package:nexus_mobile/core/router/app_router.dart';
 import 'package:nexus_mobile/design/ambient.dart';

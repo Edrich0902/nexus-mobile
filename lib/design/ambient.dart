@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
 import 'package:nexus_mobile/design/theme.dart' show buildNexusTheme;
 import 'package:nexus_mobile/design/tokens.g.dart';

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';

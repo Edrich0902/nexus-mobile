@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 
 /// Type roles from web `theme.css` (`.nx-serif`, `.nx-display`, `.nx-mono`,

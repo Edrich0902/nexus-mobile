@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/core/auth/session.dart';

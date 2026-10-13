@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/profile.dart';

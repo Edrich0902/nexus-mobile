@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
 import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
