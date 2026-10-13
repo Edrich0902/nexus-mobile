@@ -1,5 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nexus_mobile/core/router/navigation.dart';
+import 'package:nexus_mobile/design/theme.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/shell/phone_bar.dart';
@@ -52,5 +57,63 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Show tabs'));
     expect(expands, 1);
+  });
+
+  testWidgets('dragging the lens onto another tab opens it', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final collapsed = ValueNotifier(false);
+    addTearDown(collapsed.dispose);
+    final router = GoRouter(
+      initialLocation: Nav.home.to,
+      routes: [
+        ShellRoute(
+          builder: (_, state, child) => Scaffold(
+            body: Stack(
+              children: [
+                child,
+                Positioned.fill(
+                  child: PhoneBar(location: state.uri.path, collapsed: collapsed, onExpand: () {}),
+                ),
+              ],
+            ),
+          ),
+          routes: [for (final d in Nav.phoneTabs) GoRoute(path: d.to, builder: (_, _) => const SizedBox())],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    // Load the bundled fonts first: tests never relayout text when a font
+    // arrives, so a later colour-only change would repaint stale metrics.
+    await tester.pumpWidget(
+      nexusTestApp(
+        PhoneBar(location: Nav.home.to, collapsed: collapsed, onExpand: () {}),
+        overrides: [playerProvider.overrideWith(_PausedTrack.new)],
+      ),
+    );
+    await tester.runAsync(GoogleFonts.pendingFonts);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [playerProvider.overrideWith(_PausedTrack.new)],
+        child: MaterialApp.router(theme: buildNexusTheme(SectionKey.home.ambient), routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final from = tester.getCenter(find.text(Nav.home.label));
+    final to = tester.getCenter(find.text(Nav.f1.label));
+    final drag = await tester.startGesture(from);
+    for (var i = 1; i <= 12; i++) {
+      await drag.moveTo(Offset.lerp(from, to, i / 12)!);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await drag.up();
+    await tester.pumpAndSettle();
+
+    expect(router.state.uri.path, Nav.f1.to);
   });
 }

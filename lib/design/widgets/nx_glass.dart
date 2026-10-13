@@ -58,20 +58,28 @@ class NxGlass extends StatelessWidget {
 }
 
 /// The raised pill that marks a selection inside [NxGlass] (the tab lens).
+/// [lift] (0–1) brightens it and deepens its shadow while it is held.
 class NxGlassLens extends StatelessWidget {
-  const new({super.key});
+  const new({this.lift = 0, super.key});
+
+  final double lift;
 
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
     return CustomPaint(
-      foregroundPainter: _GlassRim(null, c.ink.withValues(alpha: .1), highlight: .32),
+      foregroundPainter: _GlassRim(null, c.ink.withValues(alpha: .1 + .08 * lift), highlight: .32 + .2 * lift),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: c.ink.withValues(alpha: .13),
+          color: c.ink.withValues(alpha: .13 + .07 * lift),
           borderRadius: BorderRadius.circular(999),
-          boxShadow: const [
-            BoxShadow(color: Color(0x66000000), blurRadius: 14, offset: Offset(0, 4), spreadRadius: -6),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .4 + .15 * lift),
+              blurRadius: 14 + 8 * lift,
+              offset: Offset(0, 4 + 3 * lift),
+              spreadRadius: -6,
+            ),
           ],
         ),
       ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -108,7 +109,12 @@ class PhoneBar extends ConsumerWidget {
   }
 }
 
-class _TabBar extends StatelessWidget {
+typedef _TabItem = ({IconData icon, String label, bool active, bool navigates, VoidCallback onTap});
+
+/// Tabs on a glass lens you can tap or drag. While held the lens lifts,
+/// follows the finger and stretches with its speed; released, it springs
+/// (with a little wobble) onto the nearest tab and opens it.
+class _TabBar extends StatefulWidget {
   const new({required this.location, required this.collapsed, required this.fullWidth, required this.onExpand});
 
   final String location;
@@ -116,71 +122,250 @@ class _TabBar extends StatelessWidget {
   final double fullWidth;
   final VoidCallback onExpand;
 
+  @override
+  State<_TabBar> createState() => _TabBarState();
+}
+
+class _TabBarState extends State<_TabBar> with TickerProviderStateMixin {
   static const _pad = 4.0;
+  static final _count = Nav.phoneTabs.length + 1;
+
+  /// Tight, near-critical chase while the finger leads.
+  static const _follow = SpringDescription(mass: 1, stiffness: 900, damping: 51);
+
+  /// Looser and underdamped for the landing, so the glass wobbles once.
+  static const _settle = SpringDescription(mass: 1, stiffness: 520, damping: 28);
+
+  /// Lens left edge, in tab-bar coordinates, and its speed (px/s).
+  late final _x = ValueNotifier(_leftFor(_activeIndex(_items())));
+  double _velocity = 0;
+  late double _target = _x.value;
+  SpringDescription _spring = _settle;
+
+  /// One long-running ticker integrates the spring, so a drag can retarget
+  /// it every pointer event without restarting (and stalling) the motion.
+  late final _ticker = createTicker(_tick);
+  Duration _lastTick = Duration.zero;
+  late final _lift = AnimationController(vsync: this, duration: NxTiming.fast, reverseDuration: NxTiming.base);
+
+  /// The tab under the lens while it is being dragged.
+  int? _hover;
+  double _grab = 0;
+
+  double get _tabWidth => (widget.fullWidth - _pad * 2) / _count;
+  double _leftFor(int i) => _pad + i * _tabWidth;
+  int _indexAt(double left) => ((left - _pad + _tabWidth / 2) / _tabWidth).floor().clamp(0, _count - 1);
+  int _activeIndex(List<_TabItem> items) => items.indexWhere((t) => t.active);
+
+  List<_TabItem> _items() {
+    final tabs = [
+      for (final d in Nav.phoneTabs)
+        (
+          icon: d.icon,
+          label: d.label,
+          active: Nav.isActive(d, widget.location),
+          navigates: true,
+          onTap: () => context.go(d.to),
+        ),
+    ];
+    return [
+      ...tabs,
+      (
+        icon: LucideIcons.sparkles,
+        label: 'More',
+        active: !tabs.any((t) => t.active),
+        navigates: false,
+        onTap: () => showMoreSheet(context, widget.location),
+      ),
+    ];
+  }
+
+  @override
+  void didUpdateWidget(_TabBar old) {
+    super.didUpdateWidget(old);
+    if (_hover != null) return;
+    final target = _leftFor(_activeIndex(_items()));
+    if (old.fullWidth != widget.fullWidth) {
+      _jumpTo(target);
+    } else if (old.location != widget.location) {
+      _springTo(target, _settle);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _x.dispose();
+    _lift.dispose();
+    super.dispose();
+  }
+
+  void _jumpTo(double target) {
+    _ticker.stop();
+    _target = target;
+    _velocity = 0;
+    _x.value = target;
+  }
+
+  void _springTo(double target, SpringDescription spring) {
+    if (reduceMotion(context)) return _jumpTo(target);
+    _target = target;
+    _spring = spring;
+    if (!_ticker.isActive) {
+      _lastTick = Duration.zero;
+      _ticker.start();
+    }
+  }
+
+  void _tick(Duration elapsed) {
+    final dt = math.min((elapsed - _lastTick).inMicroseconds / 1e6, 1 / 30);
+    _lastTick = elapsed;
+    if (dt <= 0) return;
+    var x = _x.value;
+    const steps = 4;
+    final h = dt / steps;
+    for (var i = 0; i < steps; i++) {
+      final accel = (_spring.stiffness * (_target - x) - _spring.damping * _velocity) / _spring.mass;
+      _velocity += accel * h;
+      x += _velocity * h;
+    }
+    if ((x - _target).abs() < .05 && _velocity.abs() < 2) {
+      _ticker.stop();
+      x = _target;
+      _velocity = 0;
+    }
+    _x.value = x;
+  }
+
+  void _dragStart(DragStartDetails d) {
+    final x = d.localPosition.dx;
+    final onLens = x >= _x.value && x <= _x.value + _tabWidth;
+    _grab = onLens ? x - _x.value : _tabWidth / 2;
+    _lift.forward();
+    setState(() => _hover = _indexAt(x - _grab));
+    _dragTo(x);
+  }
+
+  void _dragTo(double x) {
+    final min = _leftFor(0);
+    final max = _leftFor(_count - 1);
+    var left = x - _grab;
+    // Rubber-band past the ends instead of stopping dead.
+    if (left < min) left = min - math.min((min - left) * .3, 14);
+    if (left > max) left = max + math.min((left - max) * .3, 14);
+    _springTo(left, _follow);
+    final i = _indexAt(left);
+    if (i != _hover) {
+      unawaited(HapticFeedback.selectionClick());
+      setState(() => _hover = i);
+    }
+  }
+
+  void _dragEnd(double velocity) {
+    final items = _items();
+    final projected = (_target + velocity * .08).clamp(_leftFor(0), _leftFor(_count - 1));
+    final item = items[_indexAt(projected)];
+    _lift.reverse();
+    setState(() => _hover = null);
+    _springTo(_leftFor(item.navigates || item.active ? items.indexOf(item) : _activeIndex(items)), _settle);
+    if (!item.active) {
+      unawaited(HapticFeedback.lightImpact());
+      item.onTap();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
-    final tabs = [for (final d in Nav.phoneTabs) (d.icon, d.label, Nav.isActive(d, location), () => context.go(d.to))];
-    final inTabs = tabs.any((t) => t.$3);
-    tabs.add((LucideIcons.sparkles, 'More', !inTabs, () => showMoreSheet(context, location)));
-    final active = tabs.indexWhere((t) => t.$3);
-    final tabWidth = (fullWidth - _pad * 2) / tabs.length;
-    final duration = reduceMotion(context) ? Duration.zero : PhoneBar.springDuration;
-    final fade = reduceMotion(context) ? Duration.zero : NxTiming.fast;
+    final items = _items();
+    final active = _activeIndex(items);
+    final reduce = reduceMotion(context);
+    final collapsed = widget.collapsed;
+    final fade = reduce ? Duration.zero : NxTiming.fast;
 
     return NxGlass(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          AnimatedPositioned(
-            duration: duration,
-            curve: PhoneBar.spring,
-            top: _pad,
-            bottom: _pad,
-            left: collapsed ? _pad : _pad + active * tabWidth,
-            width: collapsed ? PhoneBar.dockHeight - _pad * 2 : tabWidth,
-            child: const NxGlassLens(),
-          ),
-          IgnorePointer(
-            ignoring: collapsed,
-            child: AnimatedOpacity(
-              opacity: collapsed ? 0 : 1,
-              duration: fade,
-              child: OverflowBox(
-                alignment: Alignment.centerLeft,
-                minWidth: fullWidth,
-                maxWidth: fullWidth,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: _pad),
-                  child: Row(
-                    children: [
-                      for (final (icon, label, on, onTap) in tabs)
-                        _Tab(icon: icon, label: label, active: on, onTap: onTap),
-                    ],
+      child: GestureDetector(
+        onHorizontalDragStart: collapsed ? null : _dragStart,
+        onHorizontalDragUpdate: collapsed ? null : (d) => _dragTo(d.localPosition.dx),
+        onHorizontalDragEnd: collapsed ? null : (d) => _dragEnd(d.velocity.pixelsPerSecond.dx),
+        onHorizontalDragCancel: collapsed ? null : () => _dragEnd(0),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            TweenAnimationBuilder<double>(
+              tween: Tween(end: collapsed ? 1 : 0),
+              duration: reduce ? Duration.zero : PhoneBar.springDuration,
+              curve: PhoneBar.spring,
+              builder: (context, t, _) => AnimatedBuilder(
+                animation: Listenable.merge([_x, _lift]),
+                builder: (context, _) {
+                  final speed = reduce ? 0.0 : _velocity.abs();
+                  final lift = _lift.value;
+                  const collapsedWidth = PhoneBar.dockHeight - _pad * 2;
+                  return Positioned(
+                    top: _pad,
+                    bottom: _pad,
+                    left: _x.value + (_pad - _x.value) * t,
+                    width: _tabWidth + (collapsedWidth - _tabWidth) * t,
+                    child: Transform(
+                      alignment: Alignment.center,
+                      // Squash and stretch: wider and flatter the faster it moves.
+                      transform: Matrix4.diagonal3Values(
+                        1 + math.min(speed / 2400, .4) + lift * .1,
+                        1 - math.min(speed / 5000, .14) + lift * .12,
+                        1,
+                      ),
+                      child: NxGlassLens(lift: lift),
+                    ),
+                  );
+                },
+              ),
+            ),
+            IgnorePointer(
+              ignoring: collapsed,
+              child: AnimatedOpacity(
+                opacity: collapsed ? 0 : 1,
+                duration: fade,
+                child: OverflowBox(
+                  alignment: Alignment.centerLeft,
+                  minWidth: widget.fullWidth,
+                  maxWidth: widget.fullWidth,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: _pad),
+                    child: Row(
+                      children: [
+                        for (final (i, t) in items.indexed)
+                          _Tab(
+                            icon: t.icon,
+                            label: t.label,
+                            active: _hover == null ? t.active : i == _hover,
+                            onTap: t.onTap,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          IgnorePointer(
-            ignoring: !collapsed,
-            child: AnimatedOpacity(
-              opacity: collapsed ? 1 : 0,
-              duration: fade,
-              child: Semantics(
-                button: true,
-                label: 'Show tabs',
-                excludeSemantics: true,
-                child: NxPressable(
-                  onTap: onExpand,
-                  scale: .9,
-                  child: Center(child: Icon(tabs[active].$1, size: 22, color: c.acc)),
+            IgnorePointer(
+              ignoring: !collapsed,
+              child: AnimatedOpacity(
+                opacity: collapsed ? 1 : 0,
+                duration: fade,
+                child: Semantics(
+                  button: true,
+                  label: 'Show tabs',
+                  excludeSemantics: true,
+                  child: NxPressable(
+                    onTap: widget.onExpand,
+                    scale: .9,
+                    child: Center(child: Icon(items[active].icon, size: 22, color: c.acc)),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -248,10 +433,13 @@ class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
                 ),
               ),
               const SizedBox(height: 3),
-              AnimatedDefaultTextStyle(
-                duration: NxTiming.base,
-                style: NxText.sans(size: 10.5, weight: FontWeight.w600, color: color),
-                child: Text(widget.label, maxLines: 1, overflow: TextOverflow.clip),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: AnimatedDefaultTextStyle(
+                  duration: NxTiming.base,
+                  style: NxText.sans(size: 10.5, weight: FontWeight.w600, color: color),
+                  child: Text(widget.label, maxLines: 1),
+                ),
               ),
             ],
           ),
