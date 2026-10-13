@@ -40,7 +40,7 @@ enum DrinkKind {
     attachType: 'spirit_spirit',
   );
 
-  const DrinkKind({
+  new({
     required this.noun,
     required this.label,
     required this.section,

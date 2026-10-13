@@ -6,7 +6,7 @@ import 'package:nexus_mobile/design/ambient_palette.dart';
 
 /// Port of web `design/profile.ts`: turn AI tasting words into 0–1 spokes.
 class ProfileAxis {
-  const ProfileAxis(this.label, this.value, this.word);
+  const new(this.label, this.value, this.word);
 
   final String label;
   final double value;

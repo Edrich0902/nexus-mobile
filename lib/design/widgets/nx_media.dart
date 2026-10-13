@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/core/media/cloudinary.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
@@ -17,7 +17,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart' show NxPage;
 /// delivered through the Cloudinary SDK with a named, density-appropriate
 /// transform; anything else (Spotify art, mirrored URLs) loads directly.
 class NxImage extends ConsumerWidget {
-  const NxImage({
+  const new({
     this.media,
     this.url,
     this.variant,
@@ -97,7 +97,7 @@ class NxImage extends ConsumerWidget {
 /// so (zero intrinsics) keeps [NxImage] usable inside IntrinsicHeight rows,
 /// where the LayoutBuilder underneath can't answer intrinsic queries.
 class _FillsGivenBox extends SingleChildRenderObjectWidget {
-  const _FillsGivenBox({required super.child});
+  const new({required super.child});
 
   @override
   RenderObject createRenderObject(BuildContext context) => _RenderFillsGivenBox();
@@ -131,7 +131,7 @@ Future<void> showImagePreview(BuildContext context, {MediaImage? media, String? 
 }
 
 class _ImagePreview extends StatelessWidget {
-  const _ImagePreview({this.media, this.url, this.label});
+  const new({this.media, this.url, this.label});
 
   final MediaImage? media;
   final String? url;
@@ -177,7 +177,7 @@ class _ImagePreview extends StatelessWidget {
 
 /// Stage artwork well: the image (tap to preview) or an "add a photo" prompt.
 class NxArtWell extends StatelessWidget {
-  const NxArtWell({
+  const new({
     required this.onAdd,
     this.media,
     this.url,
@@ -237,7 +237,7 @@ class NxArtWell extends StatelessWidget {
 }
 
 class NxAvatar extends ConsumerWidget {
-  const NxAvatar({this.size = 32, this.user, super.key});
+  const new({this.size = 32, this.user, super.key});
 
   final double size;
   final User? user;
@@ -267,7 +267,7 @@ class NxAvatar extends ConsumerWidget {
 
 /// Cover tile for collection grids (web NxCoverCard).
 class NxCoverCard extends StatelessWidget {
-  const NxCoverCard({
+  const new({
     required this.title,
     this.media,
     this.url,
@@ -370,7 +370,7 @@ class NxCoverCard extends StatelessWidget {
 
 /// Shrink-wrapped grid for use inside [NxPage] children.
 class NxGrid extends StatelessWidget {
-  const NxGrid({required this.children, this.columns = 2, this.spacing = 14, this.runSpacing = 18, super.key});
+  const new({required this.children, this.columns = 2, this.spacing = 14, this.runSpacing = 18, super.key});
 
   final List<Widget> children;
   final int columns;
@@ -394,7 +394,7 @@ class NxGrid extends StatelessWidget {
 
 /// Horizontal rail of fixed-width cards that bleeds to the screen edge.
 class NxRail extends StatelessWidget {
-  const NxRail({required this.children, this.itemWidth = 140, this.height = 200, super.key});
+  const new({required this.children, this.itemWidth = 140, this.height = 200, super.key});
 
   final List<Widget> children;
   final double itemWidth;

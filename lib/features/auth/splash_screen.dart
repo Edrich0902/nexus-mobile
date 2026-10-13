@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 
 /// Shown for the instant it takes to read the Keychain and call /auth/me.
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {

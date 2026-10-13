@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
 
 /// Derived surfaces + ink ramp, computed from the active [Ambient] exactly
 /// like the `color-mix` variables in web `theme.css`.
 @immutable
 class NexusColors extends ThemeExtension<NexusColors> {
-  const NexusColors({
+  const new({
     required this.amb,
     required this.amb2,
     required this.acc,
@@ -22,7 +22,7 @@ class NexusColors extends ThemeExtension<NexusColors> {
     required this.overlay,
   });
 
-  factory NexusColors.from(Ambient a) {
+  factory from(Ambient a) {
     Color alpha(Color c, double o) => c.withValues(alpha: o);
     return NexusColors(
       amb: a.amb,

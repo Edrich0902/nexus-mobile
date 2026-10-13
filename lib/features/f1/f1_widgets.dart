@@ -1,16 +1,16 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/f1/f1.dart';
 
 /// Circuit map on a light plate: OpenF1 maps are dark lines meant for white pages.
 class F1Circuit extends StatelessWidget {
-  const F1Circuit({this.url, super.key});
+  const new({this.url, super.key});
 
   final String? url;
 
@@ -28,7 +28,7 @@ class F1Circuit extends StatelessWidget {
 
 /// "Data paused while a session is live" (web NexusF1LockoutBanner).
 class F1LockoutBanner extends StatelessWidget {
-  const F1LockoutBanner({required this.health, super.key});
+  const new({required this.health, super.key});
 
   final Json? health;
 
@@ -77,7 +77,7 @@ class F1LockoutBanner extends StatelessWidget {
 
 /// A race weekend as a horizontal timeline in the viewer's timezone.
 class F1Weekend extends StatelessWidget {
-  const F1Weekend({required this.sessions, required this.now, super.key});
+  const new({required this.sessions, required this.now, super.key});
 
   final List<Json> sessions;
   final DateTime now;
@@ -134,17 +134,10 @@ class F1Weekend extends StatelessWidget {
                       case final label?)
                     Row(
                       children: [
-                        if (state == SessionState.live) ...[
-                          NxLiveDot(color: c.acc, size: 6),
-                          const SizedBox(width: 6),
-                        ],
+                        if (state == SessionState.live) ...[NxLiveDot(color: c.acc, size: 6), const SizedBox(width: 6)],
                         Text(
                           label,
-                          style: NxText.sans(
-                            size: 12,
-                            weight: FontWeight.w600,
-                            color: highlight ? c.acc : c.ink3,
-                          ),
+                          style: NxText.sans(size: 12, weight: FontWeight.w600, color: highlight ? c.acc : c.ink3),
                         ),
                       ],
                     ),
@@ -160,7 +153,7 @@ class F1Weekend extends StatelessWidget {
 
 /// Driver standings as hairline rows: position, team bar, name, points, gap.
 class F1DriverRows extends StatelessWidget {
-  const F1DriverRows({required this.drivers, required this.leaderPoints, super.key});
+  const new({required this.drivers, required this.leaderPoints, super.key});
 
   final List<Json> drivers;
   final num leaderPoints;
@@ -235,7 +228,7 @@ class F1DriverRows extends StatelessWidget {
 
 /// Constructor standings as bars in team colours, scaled to the leader.
 class F1ConstructorBars extends StatelessWidget {
-  const F1ConstructorBars({required this.teams, required this.colours, super.key});
+  const new({required this.teams, required this.colours, super.key});
 
   final List<Json> teams;
   final Map<String, Color> colours;
@@ -293,7 +286,7 @@ class F1ConstructorBars extends StatelessWidget {
 
 /// The season calendar; finished rounds dim, the live one glows.
 class F1Calendar extends StatelessWidget {
-  const F1Calendar({required this.meetings, required this.now, super.key});
+  const new({required this.meetings, required this.now, super.key});
 
   final List<Json> meetings;
   final DateTime now;
@@ -354,10 +347,7 @@ class F1Calendar extends StatelessWidget {
                             style: NxText.sans(weight: FontWeight.w600, color: c.ink),
                           ),
                           Text(
-                            [
-                              ?rows[i].meeting.str('location'),
-                              ?rows[i].meeting.str('country_name'),
-                            ].join(', '),
+                            [?rows[i].meeting.str('location'), ?rows[i].meeting.str('country_name')].join(', '),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: NxText.sans(size: 12.5, color: c.ink3),
@@ -403,7 +393,7 @@ const _compounds = {
 
 /// Tyre strategy: one lane per driver, stints as compound-coloured segments.
 class F1Stints extends StatelessWidget {
-  const F1Stints({required this.stints, required this.order, required this.label, super.key});
+  const new({required this.stints, required this.order, required this.label, super.key});
 
   final List<Json> stints;
 
@@ -514,7 +504,7 @@ class F1Stints extends StatelessWidget {
 
 /// A compact read-only table for session data (results, grid, pits, …).
 class F1Table extends StatelessWidget {
-  const F1Table({required this.columns, required this.rows, this.flex, super.key});
+  const new({required this.columns, required this.rows, this.flex, super.key});
 
   final List<String> columns;
   final List<List<Widget>> rows;
@@ -554,7 +544,7 @@ class F1Table extends StatelessWidget {
 
 /// Team-colour bar plus driver label for table cells.
 class F1DriverCell extends StatelessWidget {
-  const F1DriverCell({required this.colour, required this.name, this.team, super.key});
+  const new({required this.colour, required this.name, this.team, super.key});
 
   final Color colour;
   final String name;

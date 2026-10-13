@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/kitchen/kitchen_api.dart';
@@ -11,7 +11,7 @@ const _defaultCategory = 'Seafood';
 
 /// Browse TheMealDB by category / cuisine or search (web KitchenDiscoverView).
 class DiscoverScreen extends ConsumerStatefulWidget {
-  const DiscoverScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -64,11 +64,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         const SizedBox(height: 22),
         const KitchenNav(value: 'discover'),
         const SizedBox(height: 12),
-        NxSearchField(
-          controller: _search,
-          hint: 'Search meals…',
-          onSubmitted: (v) => setState(() => _q = v.trim()),
-        ),
+        NxSearchField(controller: _search, hint: 'Search meals…', onSubmitted: (v) => setState(() => _q = v.trim())),
         const SizedBox(height: 12),
         NxFormRow(
           children: [

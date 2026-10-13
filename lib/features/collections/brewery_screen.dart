@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/collections/drinks_api.dart';
@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// One brewery and the beers you've linked to it (web BeerBreweryView).
 class BreweryScreen extends ConsumerWidget {
-  const BreweryScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final int id;
 

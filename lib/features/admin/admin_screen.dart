@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
@@ -65,7 +65,7 @@ final adminRecentJobsProvider = FutureProvider.autoDispose<List<Json>>(
 /// Web AdminView: server health, queue depth, pending / failed jobs and
 /// recent Telescope activity. Polls the overview every 12 seconds.
 class AdminScreen extends ConsumerStatefulWidget {
-  const AdminScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<AdminScreen> createState() => _AdminScreenState();
@@ -123,10 +123,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
         await ref.read(adminOverviewProvider.future);
       },
       children: [
-        if (o == null)
-          overviewAsync.hasError
-              ? NxErrorState(error: overviewAsync.error!, onRetry: _refreshAll)
-              : const NxPageSkeleton()
+        if (o == null && overviewAsync.hasError)
+          NxErrorState(error: overviewAsync.error!, onRetry: _refreshAll)
+        else if (o == null)
+          const NxPageSkeleton()
         else
           _body(context, o, refreshing: overviewAsync.isRefreshing),
       ],
@@ -390,7 +390,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
 }
 
 class _FailedHeader extends ConsumerWidget {
-  const _FailedHeader({required this.query});
+  const new({required this.query});
 
   final PageQuery query;
 
@@ -400,7 +400,7 @@ class _FailedHeader extends ConsumerWidget {
 }
 
 class _PagedJobs extends ConsumerWidget {
-  const _PagedJobs({required this.query, required this.empty, required this.row});
+  const new({required this.query, required this.empty, required this.row});
 
   final PageQuery query;
   final String empty;
@@ -440,7 +440,7 @@ class _PagedJobs extends ConsumerWidget {
 }
 
 class _JobRow extends StatelessWidget {
-  const _JobRow({
+  const new({
     required this.title,
     this.chips = const [],
     this.detail,

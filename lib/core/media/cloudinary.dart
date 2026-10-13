@@ -18,7 +18,7 @@ enum MediaVariant {
   hero('nexus_hero'),
   avatar('nexus_avatar');
 
-  const MediaVariant(this.transform);
+  new(this.transform);
   final String transform;
 
   /// Pick the density-appropriate variant for a logical box. Thumbs and cards
@@ -57,7 +57,7 @@ final cloudinaryProvider = Provider<CloudinaryDelivery>((ref) {
 
 /// Builds delivery URLs with the official Cloudinary Dart SDK.
 class CloudinaryDelivery {
-  CloudinaryDelivery(String? cloudName)
+  new(String? cloudName)
     : _cloudinary = cloudName == null
           ? null
           : (Cloudinary.fromCloudName(cloudName: cloudName)
@@ -84,9 +84,6 @@ class CloudinaryDelivery {
   /// (e.g. mirrored covers delivered as full `secure_url`s).
   static String rewriteUrl(String url, MediaVariant variant) {
     if (!url.contains('res.cloudinary.com') || !url.contains('/image/upload/')) return url;
-    return url.replaceFirstMapped(
-      RegExp('(/image/upload/)(?:t_[^/]+/)?'),
-      (m) => '${m[1]}t_${variant.transform}/',
-    );
+    return url.replaceFirstMapped(RegExp('(/image/upload/)(?:t_[^/]+/)?'), (m) => '${m[1]}t_${variant.transform}/');
   }
 }

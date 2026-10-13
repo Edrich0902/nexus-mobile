@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
@@ -13,7 +13,7 @@ enum _Tab { pulls, commits, branches }
 
 /// Web GithubRepoView: pull requests, commits and branches for one repository.
 class GithubRepoScreen extends ConsumerStatefulWidget {
-  const GithubRepoScreen({required this.owner, required this.repo, super.key});
+  const new({required this.owner, required this.repo, super.key});
 
   final String owner;
   final String repo;
@@ -221,7 +221,7 @@ class _GithubRepoScreenState extends ConsumerState<GithubRepoScreen> {
 }
 
 class _BranchRow extends StatelessWidget {
-  const _BranchRow({
+  const new({
     required this.name,
     required this.isDefault,
     required this.protected,
@@ -285,7 +285,7 @@ class _BranchRow extends StatelessWidget {
 }
 
 class _BranchForm extends ConsumerStatefulWidget {
-  const _BranchForm({required this.repo, required this.branches, this.from});
+  const new({required this.repo, required this.branches, this.from});
 
   final RepoKey repo;
   final List<String> branches;

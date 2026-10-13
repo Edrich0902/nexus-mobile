@@ -10,9 +10,9 @@ import 'package:nexus_mobile/features/home/home_modules.dart';
 
 /// What the label reader made of a photo.
 class CaptureResult {
-  const CaptureResult({required this.media, required this.kind, required this.confidence, required this.fields});
+  const new({required this.media, required this.kind, required this.confidence, required this.fields});
 
-  factory CaptureResult.fromJson(Json json) {
+  factory fromJson(Json json) {
     final id = json.obj('identification') ?? const {};
     return CaptureResult(
       media: json.obj('media') ?? const {},
@@ -36,7 +36,7 @@ const captureCommitKinds = {'wine', 'beer', 'spirit'};
 final captureApiProvider = Provider(CaptureApi.new);
 
 class CaptureApi {
-  CaptureApi(this._ref);
+  new(this._ref);
 
   final Ref _ref;
 
@@ -53,12 +53,7 @@ class CaptureApi {
 
   /// `POST /capture/commit` — creates the wine / beer / spirit with the photo
   /// as its cover and queues tasting notes. Returns `{kind, id, route, analysis_status}`.
-  Future<Json> commit({
-    required int mediaId,
-    required String kind,
-    required Json fields,
-    double? rating,
-  }) async {
+  Future<Json> commit({required int mediaId, required String kind, required Json fields, double? rating}) async {
     final json = asJson(
       await _api.post(
         '/capture/commit',

@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
@@ -22,7 +22,7 @@ String _num(double v) => v % 1 == 0 ? v.toStringAsFixed(0) : '$v';
 /// Wine / beer / spirit page (web DrinkDetail + useDrinkDetail): label art,
 /// serif stage, AI tasting notes (polled while pending), facts and notes.
 class DrinkDetailScreen extends ConsumerStatefulWidget {
-  const DrinkDetailScreen({required this.kind, required this.id, super.key});
+  const new({required this.kind, required this.id, super.key});
 
   final DrinkKind kind;
   final int id;
@@ -87,10 +87,7 @@ class _DrinkDetailScreenState extends ConsumerState<DrinkDetailScreen> {
   }
 
   Future<void> _remove() async {
-    final ok = await showNxConfirm(
-      context,
-      message: 'Delete this ${widget.kind.noun}? Tastings and notes go with it.',
-    );
+    final ok = await showNxConfirm(context, message: 'Delete this ${widget.kind.noun}? Tastings and notes go with it.');
     if (!ok || !mounted) return;
     try {
       await ref.read(drinksApiProvider).remove(widget.kind, widget.id);
@@ -270,7 +267,7 @@ class _DrinkDetailScreenState extends ConsumerState<DrinkDetailScreen> {
 
 /// Tasting timeline (web NexusTastingTimeline).
 class _Tastings extends ConsumerWidget {
-  const _Tastings({required this.wineId, required this.tastings});
+  const new({required this.wineId, required this.tastings});
 
   final int wineId;
   final List<Json> tastings;

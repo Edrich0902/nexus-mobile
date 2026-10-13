@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/core/media/pick_image.dart';
@@ -14,7 +14,7 @@ import 'package:nexus_mobile/features/library/library_helpers.dart';
 /// One book (web LibraryBookView): cover-tinted stage with the next reading
 /// step, the description, your notes and the facts.
 class BookScreen extends ConsumerStatefulWidget {
-  const BookScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final int id;
 

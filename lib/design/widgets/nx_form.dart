@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
@@ -10,7 +10,7 @@ import 'package:nexus_mobile/design/widgets/nx_sheet.dart';
 /// Labelled slot for non-text inputs (rating, segmented choice) so they line
 /// up with [NxTextField]s in a form.
 class NxFormSlot extends StatelessWidget {
-  const NxFormSlot({required this.label, required this.child, super.key});
+  const new({required this.label, required this.child, super.key});
 
   final String label;
   final Widget child;
@@ -30,7 +30,7 @@ class NxFormSlot extends StatelessWidget {
 
 /// Two inputs side by side (web `.nx-form .row`).
 class NxFormRow extends StatelessWidget {
-  const NxFormRow({required this.children, super.key});
+  const new({required this.children, super.key});
 
   final List<Widget> children;
 
@@ -50,7 +50,7 @@ class NxFormRow extends StatelessWidget {
 
 /// Vertical form body with consistent gaps.
 class NxForm extends StatelessWidget {
-  const NxForm({required this.children, this.gap = 16, super.key});
+  const new({required this.children, this.gap = 16, super.key});
 
   final List<Widget> children;
   final double gap;
@@ -69,7 +69,7 @@ class NxForm extends StatelessWidget {
 
 /// Cancel + primary action row at the foot of a form sheet.
 class NxSheetActions extends StatelessWidget {
-  const NxSheetActions({required this.label, required this.onSubmit, this.busy = false, super.key});
+  const new({required this.label, required this.onSubmit, this.busy = false, super.key});
 
   final String label;
   final VoidCallback? onSubmit;
@@ -93,7 +93,7 @@ class NxSheetActions extends StatelessWidget {
 
 /// Tappable field that looks like an input and opens a value picker.
 class _FieldShell extends StatelessWidget {
-  const _FieldShell({required this.label, required this.text, required this.onTap, this.icon, this.onClear});
+  const new({required this.label, required this.text, required this.onTap, this.icon, this.onClear});
 
   final String label;
   final String? text;
@@ -152,7 +152,7 @@ class _FieldShell extends StatelessWidget {
 /// Select with `filter`). With [allowCustom], typed text can be used as-is
 /// (web `editable`).
 class NxPickerField<T> extends StatelessWidget {
-  const NxPickerField({
+  const new({
     required this.label,
     required this.options,
     required this.value,
@@ -203,7 +203,7 @@ class NxPickerField<T> extends StatelessWidget {
 }
 
 class _PickerList<T> extends StatefulWidget {
-  const _PickerList({required this.options, required this.value, required this.searchable, required this.allowCustom});
+  const new({required this.options, required this.value, required this.searchable, required this.allowCustom});
 
   final List<(T, String)> options;
   final T? value;
@@ -265,13 +265,7 @@ class _PickerListState<T> extends State<_PickerList<T>> {
 
 /// Date input using the platform date picker.
 class NxDateField extends StatelessWidget {
-  const NxDateField({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-    this.clearable = true,
-    super.key,
-  });
+  const new({required this.label, required this.value, required this.onChanged, this.clearable = true, super.key});
 
   final String label;
   final DateTime? value;

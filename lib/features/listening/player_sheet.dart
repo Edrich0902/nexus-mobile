@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/design/ambient.dart';
@@ -24,7 +24,7 @@ Future<void> showPlayerSheet(BuildContext context) =>
     showNxSheet<void>(context, expand: true, builder: (_) => const PlayerPanel());
 
 class PlayerPanel extends ConsumerStatefulWidget {
-  const PlayerPanel({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<PlayerPanel> createState() => _PlayerPanelState();
@@ -212,14 +212,7 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
 
 /// Round play / pause button; the icon cross-fades between states.
 class PlayToggle extends StatelessWidget {
-  const PlayToggle({
-    required this.playing,
-    required this.onPressed,
-    this.size = 50,
-    this.color,
-    this.iconColor,
-    super.key,
-  });
+  const new({required this.playing, required this.onPressed, this.size = 50, this.color, this.iconColor, super.key});
 
   final bool playing;
   final VoidCallback? onPressed;
@@ -269,7 +262,7 @@ class PlayToggle extends StatelessWidget {
 }
 
 class _VolumeSlider extends StatefulWidget {
-  const _VolumeSlider({required this.value, required this.enabled, required this.onChanged});
+  const new({required this.value, required this.enabled, required this.onChanged});
 
   final double value;
   final bool enabled;
@@ -312,7 +305,7 @@ class _VolumeSliderState extends State<_VolumeSlider> {
 /// Reusable Spotify track row: art, title, artists, tap to play, long-press
 /// or menu for queue / like / playlist.
 class TrackRow extends ConsumerWidget {
-  const TrackRow({required this.track, this.reason, this.index, this.contextUri, this.trailing, super.key});
+  const new({required this.track, this.reason, this.index, this.contextUri, this.trailing, super.key});
 
   final Json track;
   final String? reason;
@@ -499,15 +492,11 @@ Future<void> showDevicesSheet(BuildContext context) => showNxSheet<void>(
   ),
 );
 
-Future<void> showQueueSheet(BuildContext context) => showNxSheet<void>(
-  context,
-  title: 'Up next',
-  expand: true,
-  builder: (_) => const _QueueBody(),
-);
+Future<void> showQueueSheet(BuildContext context) =>
+    showNxSheet<void>(context, title: 'Up next', expand: true, builder: (_) => const _QueueBody());
 
 class _QueueBody extends ConsumerStatefulWidget {
-  const _QueueBody();
+  const new();
 
   @override
   ConsumerState<_QueueBody> createState() => _QueueBodyState();
@@ -529,10 +518,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
     super.dispose();
   }
 
-  Json _asTrack(Json item) => {
-    ...item,
-    'album_image_url': item.at('album.images.0.url'),
-  };
+  Json _asTrack(Json item) => {...item, 'album_image_url': item.at('album.images.0.url')};
 
   @override
   Widget build(BuildContext context) {

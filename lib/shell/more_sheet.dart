@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 
@@ -48,7 +48,7 @@ Future<void> showMoreSheet(BuildContext context, String location) {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.dest, required this.active, required this.onTap});
+  const new({required this.dest, required this.active, required this.onTap});
 
   final Destination dest;
   final bool active;

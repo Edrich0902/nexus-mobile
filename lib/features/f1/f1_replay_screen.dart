@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/polling.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -15,7 +15,7 @@ enum _Tone { info, warn, bad }
 /// Web F1ReplayView: the track replay, its sync state and the focused car's
 /// telemetry. Polls while the replay is pending or still filling in.
 class F1ReplayScreen extends ConsumerStatefulWidget {
-  const F1ReplayScreen({required this.sessionKey, super.key});
+  const new({required this.sessionKey, super.key});
 
   final int sessionKey;
 

@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/sports/sports.dart';
 
 /// Club / competition crest with an initials fallback (web NexusTeamBadge).
 class TeamBadge extends StatelessWidget {
-  const TeamBadge({required this.url, required this.label, this.size = 26, super.key});
+  const new({required this.url, required this.label, this.size = 26, super.key});
 
   final String? url;
   final String? label;
@@ -36,7 +36,7 @@ class TeamBadge extends StatelessWidget {
 
 /// A fixture or result: when · home score away · competition (web SportsEventRow).
 class SportsEventRow extends StatelessWidget {
-  const SportsEventRow({required this.event, this.first = false, super.key});
+  const new({required this.event, this.first = false, super.key});
 
   final Json event;
   final bool first;
@@ -178,7 +178,7 @@ const _formTone = {'W': NexusColors.ok, 'L': NexusColors.bad};
 
 /// A league table as hairline rows with recent form (web SportsTable).
 class SportsTable extends StatelessWidget {
-  const SportsTable({required this.block, super.key});
+  const new({required this.block, super.key});
 
   final Json block;
 

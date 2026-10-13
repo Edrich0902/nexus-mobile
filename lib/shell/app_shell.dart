@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
 import 'package:nexus_mobile/design/ambient.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -14,7 +14,7 @@ const topBarHeight = 54.0;
 /// The authed frame (web AppLayout at ≤640px): blurred top bar, scrolling
 /// page underneath, and the phone bar with the Spotify strip.
 class AppShell extends ConsumerStatefulWidget {
-  const AppShell({required this.location, required this.child, super.key});
+  const new({required this.location, required this.child, super.key});
 
   final String location;
   final Widget child;

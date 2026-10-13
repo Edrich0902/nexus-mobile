@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
@@ -11,7 +11,7 @@ enum StageArt { square, portrait }
 /// artwork, eyebrow, serif title with an italic accent tail, lede, progress
 /// rail and pill actions.
 class NxStage extends StatelessWidget {
-  const NxStage({
+  const new({
     this.eyebrow,
     this.live = false,
     this.title,
@@ -155,7 +155,7 @@ class NxStage extends StatelessWidget {
 
 /// Serif summary sentence with bolded ink highlights (web NxSerifSummary).
 class NxSerifSummary extends StatelessWidget {
-  const NxSerifSummary(this.parts, {super.key});
+  const new(this.parts, {super.key});
 
   /// (text, highlighted) pairs.
   final List<(String, bool)> parts;

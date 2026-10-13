@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
@@ -71,7 +71,7 @@ Object? _typed(String key, String value) => switch (key) {
 /// pre-filled fields, a rating and one-tap save (web has no equivalent —
 /// this is the phone-only capture flow from the mockup).
 class CaptureReview extends ConsumerStatefulWidget {
-  const CaptureReview({required this.result, required this.onRetake, super.key});
+  const new({required this.result, required this.onRetake, super.key});
 
   final CaptureResult result;
   final VoidCallback onRetake;

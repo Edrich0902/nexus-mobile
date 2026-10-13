@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/providers.dart';
@@ -106,10 +106,8 @@ String meetingDates(Json meeting) {
 }
 
 /// "Marina Bay, Singapore" without repeating a city-state's name.
-String meetingPlace(Json meeting) => {
-  ?(meeting.str('circuit_short_name') ?? meeting.str('location')),
-  ?meeting.str('country_name'),
-}.join(', ');
+String meetingPlace(Json meeting) =>
+    {?(meeting.str('circuit_short_name') ?? meeting.str('location')), ?meeting.str('country_name')}.join(', ');
 
 SessionState meetingState(Json meeting, DateTime now) {
   final s = _at(meeting.str('date_start')) ?? DateTime(0);
@@ -212,7 +210,7 @@ final f1SessionProvider = FutureProvider.autoDispose.family<({Json detail, Json 
 final f1ApiProvider = Provider(F1Api.new);
 
 class F1Api {
-  F1Api(this._ref);
+  new(this._ref);
 
   final Ref _ref;
 

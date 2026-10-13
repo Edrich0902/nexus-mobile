@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
 import 'package:nexus_mobile/core/format.dart';
@@ -16,7 +16,7 @@ import 'package:nexus_mobile/features/kitchen/kitchen_api.dart';
 
 /// Saved / Discover pills shared by the kitchen pages (web kitchenNav).
 class KitchenNav extends StatelessWidget {
-  const KitchenNav({required this.value, super.key});
+  const new({required this.value, super.key});
 
   final String value;
 
@@ -43,7 +43,7 @@ const _verdictRank = {'great': 2, 'good': 1, 'poor': 0};
 
 /// Saved recipes (web KitchenView).
 class KitchenScreen extends ConsumerStatefulWidget {
-  const KitchenScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<KitchenScreen> createState() => _KitchenScreenState();

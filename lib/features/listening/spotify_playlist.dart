@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/art_ambient.dart';
@@ -21,7 +21,7 @@ Future<Json?> showPlaylistSheet(BuildContext context, {Json? playlist}) => showN
 );
 
 class _PlaylistForm extends ConsumerStatefulWidget {
-  const _PlaylistForm({this.playlist});
+  const new({this.playlist});
 
   final Json? playlist;
 
@@ -89,7 +89,7 @@ class _PlaylistFormState extends ConsumerState<_PlaylistForm> {
 /// One playlist (web SpotifyPlaylistView): tracks, play from any row, edit,
 /// refresh from Spotify, remove tracks and delete / unfollow.
 class PlaylistScreen extends ConsumerStatefulWidget {
-  const PlaylistScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final String id;
 

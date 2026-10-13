@@ -3,7 +3,7 @@ import 'package:nexus_mobile/core/api/json.dart';
 /// Compact image payload (`media` on records): Cloudinary public id + the
 /// stored secure URL as a fallback.
 class MediaImage {
-  const MediaImage({this.id, this.publicId, this.url});
+  const new({this.id, this.publicId, this.url});
 
   static MediaImage? fromJson(Json? json) {
     if (json == null) return null;

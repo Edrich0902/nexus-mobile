@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/media/cloudinary.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
@@ -35,7 +35,7 @@ List<String> recipeSteps(String? instructions) {
 /// A recipe page: dish photo and serif name on the stage, ingredients, then
 /// the numbered method. Shared by saved recipes and TheMealDB previews.
 class RecipeDetail extends StatelessWidget {
-  const RecipeDetail({
+  const new({
     required this.meal,
     required this.eyebrow,
     required this.actions,
@@ -120,10 +120,7 @@ class RecipeDetail extends StatelessWidget {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Expanded(
-                          child: Text(
-                            ingredients[i].text('name'),
-                            style: NxText.sans(size: 14.5, color: c.ink),
-                          ),
+                          child: Text(ingredients[i].text('name'), style: NxText.sans(size: 14.5, color: c.ink)),
                         ),
                         const SizedBox(width: 16),
                         Text(
@@ -168,10 +165,7 @@ class RecipeDetail extends StatelessWidget {
                   SizedBox(
                     width: 46,
                     child: ExcludeSemantics(
-                      child: Text(
-                        '${i + 1}'.padLeft(2, '0'),
-                        style: NxText.display(size: 26, color: c.acc),
-                      ),
+                      child: Text('${i + 1}'.padLeft(2, '0'), style: NxText.display(size: 26, color: c.acc)),
                     ),
                   ),
                   Expanded(
@@ -191,7 +185,7 @@ class RecipeDetail extends StatelessWidget {
 
 /// A saved recipe (web KitchenRecipeView).
 class SavedRecipeScreen extends ConsumerWidget {
-  const SavedRecipeScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final int id;
 
@@ -285,10 +279,7 @@ class SavedRecipeScreen extends ConsumerWidget {
                 onTap: () => _rate(context, ref, r.number('rating')),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: context.nx.tint,
-                    borderRadius: BorderRadius.circular(NxRadius.pill),
-                  ),
+                  decoration: BoxDecoration(color: context.nx.tint, borderRadius: BorderRadius.circular(NxRadius.pill)),
                   child: r.number('rating') == null
                       ? Text('Rate it', style: NxText.sans(size: 13, color: context.nx.ink2))
                       : NxRating(r.number('rating')),
@@ -323,7 +314,7 @@ class SavedRecipeScreen extends ConsumerWidget {
 
 /// A TheMealDB meal before it's saved (web KitchenMealPreviewView).
 class MealPreviewScreen extends ConsumerStatefulWidget {
-  const MealPreviewScreen({required this.mealdbId, super.key});
+  const new({required this.mealdbId, super.key});
 
   final String mealdbId;
 

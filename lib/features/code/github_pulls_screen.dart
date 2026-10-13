@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -18,7 +18,7 @@ const _emptyBody = {
 
 /// Web GithubPullsView: every pull request across your repositories.
 class GithubPullsScreen extends ConsumerStatefulWidget {
-  const GithubPullsScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<GithubPullsScreen> createState() => _GithubPullsScreenState();
@@ -66,9 +66,7 @@ class _GithubPullsScreenState extends ConsumerState<GithubPullsScreen> {
                     body: _emptyBody[_filter],
                   )
                 : Column(
-                    children: [
-                      for (final (i, p) in pulls.indexed) PullRow(pull: p, showRepo: true, first: i == 0),
-                    ],
+                    children: [for (final (i, p) in pulls.indexed) PullRow(pull: p, showRepo: true, first: i == 0)],
                   ),
           ),
         ],

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
@@ -108,7 +108,7 @@ Future<bool> showNxConfirm(
 /// sign-out): first tap arms, the row swaps to a red confirm that disarms
 /// itself after 6 s with a draining bar.
 class NxArmedConfirm extends StatefulWidget {
-  const NxArmedConfirm({
+  const new({
     required this.label,
     required this.question,
     required this.confirmLabel,

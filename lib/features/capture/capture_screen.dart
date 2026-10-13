@@ -3,12 +3,12 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/connectivity.dart';
@@ -37,7 +37,7 @@ enum CaptureMode {
   book('Book', 'book', 'Front cover · hold steady', ('Point at the ', 'cover', '')),
   barcode('Barcode', null, 'Line up the ISBN barcode', ('Scan the ', 'barcode', ' on the back'));
 
-  const CaptureMode(this.label, this.hint, this.aim, this.caption);
+  new(this.label, this.hint, this.aim, this.caption);
 
   final String label;
 
@@ -64,7 +64,7 @@ enum _Stage { aim, reading, review, failed }
 /// Phone-only capture (mockup "Capture"): live camera with mode pills, label
 /// identification and review, ISBN scanning, and an offline queue.
 class CaptureScreen extends ConsumerStatefulWidget {
-  const CaptureScreen({this.kind, this.barcode = false, super.key});
+  const new({this.kind, this.barcode = false, super.key});
 
   final String? kind;
   final bool barcode;
@@ -455,12 +455,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> with WidgetsBindi
                 ),
               ),
             if (aiming) ...[
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: pad.bottom + 150,
-                child: _Caption(_mode.caption),
-              ),
+              Positioned(left: 24, right: 24, bottom: pad.bottom + 150, child: _Caption(_mode.caption)),
               Positioned(
                 left: 0,
                 right: 0,
@@ -578,7 +573,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> with WidgetsBindi
 }
 
 class _Scrims extends StatelessWidget {
-  const _Scrims();
+  const new();
 
   @override
   Widget build(BuildContext context) => const IgnorePointer(
@@ -618,7 +613,7 @@ class _Scrims extends StatelessWidget {
 }
 
 class _Glass extends StatelessWidget {
-  const _Glass({required this.child, this.padding = EdgeInsets.zero});
+  const new({required this.child, this.padding = EdgeInsets.zero});
 
   final Widget child;
   final EdgeInsets padding;
@@ -634,7 +629,7 @@ class _Glass extends StatelessWidget {
 }
 
 class _GlassIcon extends StatelessWidget {
-  const _GlassIcon(this.icon, {required this.tooltip, required this.onTap});
+  const new(this.icon, {required this.tooltip, required this.onTap});
 
   final IconData icon;
   final String tooltip;
@@ -657,7 +652,7 @@ class _GlassIcon extends StatelessWidget {
 }
 
 class _ModePills extends StatelessWidget {
-  const _ModePills({required this.value, required this.onChanged});
+  const new({required this.value, required this.onChanged});
 
   final CaptureMode value;
   final ValueChanged<CaptureMode> onChanged;
@@ -704,7 +699,7 @@ class _ModePills extends StatelessWidget {
 }
 
 class _GlassChip extends StatelessWidget {
-  const _GlassChip({required this.label, this.busy = false});
+  const new({required this.label, this.busy = false});
 
   final String label;
   final bool busy;
@@ -734,7 +729,7 @@ class _GlassChip extends StatelessWidget {
 }
 
 class _Caption extends StatelessWidget {
-  const _Caption(this.caption);
+  const new(this.caption);
 
   final (String, String, String) caption;
 
@@ -760,7 +755,7 @@ class _Caption extends StatelessWidget {
 }
 
 class _Controls extends StatelessWidget {
-  const _Controls({
+  const new({
     required this.lastShot,
     required this.queued,
     required this.onQueue,
@@ -855,7 +850,7 @@ class _Controls extends StatelessWidget {
 
 /// Corner brackets that breathe while aiming and lock (rose) while reading.
 class _Brackets extends StatefulWidget {
-  const _Brackets({required this.locked});
+  const new({required this.locked});
 
   final bool locked;
 
@@ -898,7 +893,7 @@ class _BracketsState extends State<_Brackets> with SingleTickerProviderStateMixi
 }
 
 class _BracketPainter extends CustomPainter {
-  const _BracketPainter(this.color);
+  const new(this.color);
 
   final Color color;
 
@@ -945,7 +940,7 @@ class _BracketPainter extends CustomPainter {
 
 /// Barcode window: dims everything outside, with a sweeping accent line.
 class _ScanFrame extends StatefulWidget {
-  const _ScanFrame({this.note});
+  const new({this.note});
 
   final String? note;
 
@@ -1009,7 +1004,7 @@ class _ScanFrameState extends State<_ScanFrame> with SingleTickerProviderStateMi
 }
 
 class _DimOutside extends CustomPainter {
-  const _DimOutside(this.frame);
+  const new(this.frame);
 
   final Size frame;
 
@@ -1030,7 +1025,7 @@ class _DimOutside extends CustomPainter {
 }
 
 class _CameraFallback extends StatelessWidget {
-  const _CameraFallback({required this.message, required this.onPick, required this.pickLabel});
+  const new({required this.message, required this.onPick, required this.pickLabel});
 
   final String message;
   final VoidCallback onPick;
@@ -1068,7 +1063,7 @@ class _CameraFallback extends StatelessWidget {
 }
 
 class _FailedPanel extends StatelessWidget {
-  const _FailedPanel({
+  const new({
     required this.message,
     required this.onRetry,
     required this.onRetake,
@@ -1094,10 +1089,7 @@ class _FailedPanel extends StatelessWidget {
         children: [
           Text('Couldn’t read the label', style: NxText.serif(size: 26, color: c.ink)),
           const SizedBox(height: 6),
-          Text(
-            retryAfter == null ? message : '$message (about ${retryAfter}s)',
-            style: NxText.sans(color: c.ink2),
-          ),
+          Text(retryAfter == null ? message : '$message (about ${retryAfter}s)', style: NxText.sans(color: c.ink2)),
           const SizedBox(height: 14),
           Wrap(
             spacing: 8,

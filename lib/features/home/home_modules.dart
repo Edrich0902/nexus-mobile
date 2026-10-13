@@ -14,7 +14,7 @@ final githubPulseProvider = softJsonProvider('/github/pulse');
 final spotifyTasteProvider = softJsonProvider('/spotify/taste');
 
 class HomeField {
-  const HomeField({
+  const new({
     required this.key,
     required this.section,
     required this.label,
@@ -40,7 +40,7 @@ class HomeField {
 }
 
 class HomeUpcoming {
-  const HomeUpcoming({
+  const new({
     required this.key,
     required this.when,
     required this.section,
@@ -60,7 +60,7 @@ class HomeUpcoming {
 }
 
 class HomeModules {
-  const HomeModules({required this.loading, required this.fields, required this.summary, required this.upcoming});
+  const new({required this.loading, required this.fields, required this.summary, required this.upcoming});
 
   final bool loading;
   final List<HomeField> fields;

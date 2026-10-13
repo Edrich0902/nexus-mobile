@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/profile.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -8,7 +8,7 @@ import 'package:nexus_mobile/features/collections/drinks_api.dart';
 
 /// "AI ready 2/3" pill (web NexusQuotaBadge).
 class QuotaBadge extends ConsumerWidget {
-  const QuotaBadge({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,12 +45,7 @@ class QuotaBadge extends ConsumerWidget {
 
 /// AI tasting notes for a bottle (web NexusDrinkAnalysisPanel).
 class AnalysisPanel extends StatelessWidget {
-  const AnalysisPanel({
-    required this.item,
-    required this.analysing,
-    required this.onAnalyse,
-    super.key,
-  });
+  const new({required this.item, required this.analysing, required this.onAnalyse, super.key});
 
   final Json item;
   final bool analysing;
@@ -150,11 +145,8 @@ class AnalysisPanel extends StatelessWidget {
       padding: const EdgeInsets.only(top: 24, bottom: 10),
       child: Text(text.toUpperCase(), style: NxText.label(context, size: 11)),
     );
-    Widget chips(List<String> items, {bool accent = true}) => Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [for (final i in items) _Chip(i, accent: accent)],
-    );
+    Widget chips(List<String> items, {bool accent = true}) =>
+        Wrap(spacing: 6, runSpacing: 6, children: [for (final i in items) _Chip(i, accent: accent)]);
     Widget lines(List<String> items) => Column(
       children: [
         for (final i in items)
@@ -239,7 +231,7 @@ class AnalysisPanel extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip(this.label, {required this.accent});
+  const new(this.label, {required this.accent});
 
   final String label;
   final bool accent;

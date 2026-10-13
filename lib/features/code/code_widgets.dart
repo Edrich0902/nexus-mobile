@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
@@ -12,7 +12,7 @@ import 'package:nexus_mobile/features/code/github.dart';
 
 /// Overview · Pull requests · Search · Stats (web CodeNav).
 class CodeNav extends StatelessWidget {
-  const CodeNav({required this.value, super.key});
+  const new({required this.value, super.key});
 
   final String value;
 
@@ -31,7 +31,7 @@ class CodeNav extends StatelessWidget {
 
 /// GitHub avatars are third-party URLs; NxImage keeps them on the shared cache.
 class GithubAvatar extends StatelessWidget {
-  const GithubAvatar({required this.url, this.size = 26, super.key});
+  const new({required this.url, this.size = 26, super.key});
 
   final String? url;
   final double size;
@@ -44,7 +44,7 @@ class GithubAvatar extends StatelessWidget {
 }
 
 class _Meta extends StatelessWidget {
-  const _Meta(this.parts);
+  const new(this.parts);
 
   final List<String> parts;
 
@@ -58,7 +58,7 @@ class _Meta extends StatelessWidget {
 }
 
 class _Hairline extends StatelessWidget {
-  const _Hairline({required this.child, this.onTap, this.first = false});
+  const new({required this.child, this.onTap, this.first = false});
 
   final Widget child;
   final VoidCallback? onTap;
@@ -79,7 +79,7 @@ class _Hairline extends StatelessWidget {
 
 /// A repository: owner/name, description, language and last push (web RepoRow).
 class RepoRow extends StatelessWidget {
-  const RepoRow({required this.repo, this.first = false, this.stars, super.key});
+  const new({required this.repo, this.first = false, this.stars, super.key});
 
   final Json repo;
   final bool first;
@@ -127,10 +127,7 @@ class RepoRow extends StatelessWidget {
                   child: Text('Private', style: NxText.sans(size: 11, color: c.ink3)),
                 ),
               ],
-              if (repo.flag('starred')) ...[
-                const SizedBox(width: 6),
-                Icon(LucideIcons.star, size: 14, color: c.acc),
-              ],
+              if (repo.flag('starred')) ...[const SizedBox(width: 6), Icon(LucideIcons.star, size: 14, color: c.acc)],
             ],
           ),
           if (repo.str('description') case final d?)
@@ -171,7 +168,7 @@ class RepoRow extends StatelessWidget {
 
 /// A pull request with a state dot; opens the in-app detail (web PullRow).
 class PullRow extends StatelessWidget {
-  const PullRow({
+  const new({
     required this.pull,
     this.owner,
     this.repo,
@@ -240,10 +237,7 @@ class PullRow extends StatelessWidget {
               ],
             ),
           ),
-          if (user?.str('avatar_url') case final avatar?) ...[
-            const SizedBox(width: 10),
-            GithubAvatar(url: avatar),
-          ],
+          if (user?.str('avatar_url') case final avatar?) ...[const SizedBox(width: 10), GithubAvatar(url: avatar)],
         ],
       ),
     );
@@ -252,7 +246,7 @@ class PullRow extends StatelessWidget {
 
 /// A commit: subject line, where and when, and the short SHA (web CommitRow).
 class CommitRow extends StatelessWidget {
-  const CommitRow({required this.commit, this.repo, this.first = false, super.key});
+  const new({required this.commit, this.repo, this.first = false, super.key});
 
   final Json commit;
   final String? repo;
@@ -296,7 +290,7 @@ class CommitRow extends StatelessWidget {
 /// Changed files with expandable unified diffs (web NexusGithubDiffViewer,
 /// single-column for phones).
 class DiffViewer extends StatefulWidget {
-  const DiffViewer({required this.files, super.key});
+  const new({required this.files, super.key});
 
   final List<Json> files;
 
@@ -367,16 +361,16 @@ class _DiffViewerState extends State<DiffViewer> {
                         ),
                       ),
                     ),
-                    if (open)
-                      f.str('patch') == null
-                          ? Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Text(
-                                'Patch not available for this file (binary or too large).',
-                                style: NxText.muted(context),
-                              ),
-                            )
-                          : _Patch(patch: f.str('patch')!),
+                    if (open && f.str('patch') == null)
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          'Patch not available for this file (binary or too large).',
+                          style: NxText.muted(context),
+                        ),
+                      )
+                    else if (open)
+                      _Patch(patch: f.str('patch')!),
                   ],
                 ),
               );
@@ -388,7 +382,7 @@ class _DiffViewerState extends State<DiffViewer> {
 }
 
 class _Patch extends StatelessWidget {
-  const _Patch({required this.patch});
+  const new({required this.patch});
 
   final String patch;
 
@@ -465,7 +459,7 @@ class _Patch extends StatelessWidget {
 /// A year of contributions, one column per week, scrolled to today
 /// (web ContributionGrid).
 class ContributionGrid extends StatelessWidget {
-  const ContributionGrid({required this.weeks, this.total, super.key});
+  const new({required this.weeks, this.total, super.key});
 
   final List<Json> weeks;
   final int? total;

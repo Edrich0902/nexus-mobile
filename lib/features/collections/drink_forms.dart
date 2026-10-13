@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -17,7 +17,7 @@ Future<Json?> showDrinkCreateSheet(BuildContext context, DrinkKind kind) => show
 );
 
 class _DrinkCreateForm extends ConsumerStatefulWidget {
-  const _DrinkCreateForm({required this.kind});
+  const new({required this.kind});
 
   final DrinkKind kind;
 
@@ -201,7 +201,7 @@ class _DrinkCreateFormState extends ConsumerState<_DrinkCreateForm> {
 }
 
 class _BeerStylePicker extends ConsumerWidget {
-  const _BeerStylePicker({required this.value, required this.onChanged});
+  const new({required this.value, required this.onChanged});
 
   final int? value;
   final ValueChanged<int?> onChanged;
@@ -221,7 +221,7 @@ class _BeerStylePicker extends ConsumerWidget {
 
 /// Open Brewery DB lookup, or add a brewery by hand (web BeerView).
 class _BreweryPicker extends ConsumerStatefulWidget {
-  const _BreweryPicker({required this.value, required this.onChanged});
+  const new({required this.value, required this.onChanged});
 
   final Json? value;
   final ValueChanged<Json?> onChanged;
@@ -408,7 +408,7 @@ Future<bool?> showTastingSheet(BuildContext context, int wineId) => showNxSheet<
 );
 
 class _TastingForm extends ConsumerStatefulWidget {
-  const _TastingForm({required this.wineId});
+  const new({required this.wineId});
 
   final int wineId;
 

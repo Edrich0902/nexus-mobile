@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/integrations/oauth_connect.dart';
@@ -45,7 +45,7 @@ enum PullState {
   merged('Merged'),
   closed('Closed');
 
-  const PullState(this.label);
+  new(this.label);
 
   final String label;
 }
@@ -111,7 +111,7 @@ typedef PullKey = ({String owner, String repo, int number});
 final githubApiProvider = Provider(GithubApi.new);
 
 class GithubApi {
-  GithubApi(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   static const _b = '/github';
@@ -214,10 +214,7 @@ final githubBranchesProvider = FutureProvider.autoDispose.family<List<Json>, Rep
 
 /// Pull request, its changed files and reviews (web loadPullDetail).
 final githubPullProvider = FutureProvider.autoDispose
-    .family<({Json pull, List<Json> files, List<Json> reviews}), PullKey>((
-      ref,
-      k,
-    ) async {
+    .family<({Json pull, List<Json> files, List<Json> reviews}), PullKey>((ref, k) async {
       final api = ref.watch(githubApiProvider);
       final (pull, files, reviews) = await (api.pull(k), api.pullFiles(k), api.pullReviews(k)).wait;
       return (pull: pull, files: files, reviews: reviews);

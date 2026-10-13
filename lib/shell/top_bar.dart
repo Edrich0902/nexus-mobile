@@ -1,9 +1,9 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -24,7 +24,7 @@ Destination sectionDestination(String path) {
 }
 
 class TopBar extends ConsumerWidget {
-  const TopBar({required this.location, super.key});
+  const new({required this.location, super.key});
 
   final String location;
 

@@ -6,7 +6,7 @@ final spotifyApiProvider = Provider<SpotifyApi>((ref) => SpotifyApi(ref.watch(ap
 
 /// Mirrors web `services/spotify.service.ts`.
 class SpotifyApi {
-  SpotifyApi(this._api);
+  new(this._api);
 
   final ApiClient _api;
   static const _b = '/spotify';

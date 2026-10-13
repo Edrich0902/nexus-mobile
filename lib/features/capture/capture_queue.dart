@@ -9,9 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// A photo taken while offline, waiting to be read.
 class QueuedCapture {
-  const QueuedCapture({required this.id, required this.path, required this.at, this.hint});
+  const new({required this.id, required this.path, required this.at, this.hint});
 
-  factory QueuedCapture.fromJson(Map<String, dynamic> j) => QueuedCapture(
+  factory fromJson(Map<String, dynamic> j) => QueuedCapture(
     id: j['id'] as String,
     path: j['path'] as String,
     hint: j['hint'] as String?,

@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
 import 'package:nexus_mobile/design/debounced_search.dart';
@@ -19,7 +19,7 @@ final _githubSearchProvider = FutureProvider.autoDispose.family<Json, (String, S
 
 /// Web GithubSearchView: repositories, issues / PRs and code across GitHub.
 class GithubSearchScreen extends ConsumerStatefulWidget {
-  const GithubSearchScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<GithubSearchScreen> createState() => _GithubSearchScreenState();

@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/art_ambient.dart';
@@ -23,7 +23,7 @@ typedef _Hero = ({bool live, String name, String? uri, String? art, String? albu
 /// listening fields, recent plays, track character, playlists, on repeat and
 /// suggestions.
 class ListeningScreen extends ConsumerWidget {
-  const ListeningScreen({super.key});
+  const new({super.key});
 
   _Hero? _hero(PlayerState p, List<Json> recent) {
     if (p.item case final item? when item.str('name') != null) {
@@ -84,8 +84,7 @@ class ListeningScreen extends ConsumerWidget {
             eyebrow: 'Listening',
             title: 'Bring your',
             accent: 'music in',
-            lede:
-                'Connect Spotify to control playback from anywhere in Nexus, see what you have been playing and keep your playlists close. Audio stays on Spotify.',
+            lede: 'Connect Spotify to control playback from anywhere in Nexus, see what you have been playing and keep your playlists close. Audio stays on Spotify.',
             visual: const SpotifyMark(),
             actions: [NxButton('Connect Spotify', onPressed: () => connectSpotify(context, ref))],
           ),
@@ -127,11 +126,7 @@ class ListeningScreen extends ConsumerWidget {
             ledeWidget: hero == null ? null : _ArtistLinks(artists: hero.artists, album: hero.album),
             lede: hero == null ? 'Nothing has played yet. Start something on Spotify and it shows up here.' : null,
             actions: [
-              _StageControls(
-                live: hero?.live ?? false,
-                uri: hero?.uri,
-                onDisconnect: () => _disconnect(context, ref),
-              ),
+              _StageControls(live: hero?.live ?? false, uri: hero?.uri, onDisconnect: () => _disconnect(context, ref)),
             ],
           ),
           if (player.hasTrack) ...[
@@ -204,11 +199,7 @@ class ListeningScreen extends ConsumerWidget {
               ),
             ),
           ],
-          NxSectionHeader(
-            'Recently played',
-            actionLabel: 'Your stats',
-            onAction: () => context.go('/spotify/stats'),
-          ),
+          NxSectionHeader('Recently played', actionLabel: 'Your stats', onAction: () => context.go('/spotify/stats')),
           if (recentAsync.isLoading && recent.isEmpty)
             const NxSkeleton(height: 200, radius: NxRadius.lg)
           else if (recent.isEmpty)
@@ -247,10 +238,7 @@ class ListeningScreen extends ConsumerWidget {
             ),
           const NxSectionHeader('On repeat'),
           if (onRepeat.isEmpty)
-            Text(
-              'Play a track a few times this week and it lands here.',
-              style: NxText.muted(context, size: 14),
-            )
+            Text('Play a track a few times this week and it lands here.', style: NxText.muted(context, size: 14))
           else
             TrackList(
               tracks: [for (final r in onRepeat) r.obj('track') ?? const {}],
@@ -280,7 +268,7 @@ extension on String {
 }
 
 class _ArtistLinks extends StatelessWidget {
-  const _ArtistLinks({required this.artists, this.album});
+  const new({required this.artists, this.album});
 
   final List<Json> artists;
   final String? album;
@@ -307,7 +295,7 @@ class _ArtistLinks extends StatelessWidget {
 
 /// The stage rail for the live track, with elapsed and total time.
 class _TrackRail extends StatelessWidget {
-  const _TrackRail();
+  const new();
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +323,7 @@ class _TrackRail extends StatelessWidget {
 /// Transport on the left (or "Play again" for the last track), track and
 /// account actions on the right (mockup: prev · play · next, then extras).
 class _StageControls extends ConsumerWidget {
-  const _StageControls({required this.live, required this.uri, required this.onDisconnect});
+  const new({required this.live, required this.uri, required this.onDisconnect});
 
   final bool live;
   final String? uri;
@@ -414,7 +402,7 @@ const _keys = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A�
 
 /// Tempo, key and audio meters for the playing track (web NexusSpotifyTrackMetrics).
 class TrackCharacter extends StatelessWidget {
-  const TrackCharacter({required this.player, super.key});
+  const new({required this.player, super.key});
 
   final PlayerState player;
 

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
@@ -10,7 +10,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart' show NxField;
 /// Space the shell's floating top bar and phone bar take up, so pages can
 /// scroll content underneath the blurred chrome.
 class ShellInsets extends InheritedWidget {
-  const ShellInsets({required this.top, required this.bottom, required super.child, super.key});
+  const new({required this.top, required this.bottom, required super.child, super.key});
 
   final double top;
   final double bottom;
@@ -27,15 +27,10 @@ const pagePad = 20.0;
 /// Sections stagger in when the page opens; ones built later (scrolled to,
 /// or arriving with data after the opening beat) just appear.
 class NxPage extends StatefulWidget {
-  const NxPage({required this.children, this.onRefresh, this.controller, this.padTop = 8, super.key}) : slivers = null;
+  const new({required this.children, this.onRefresh, this.controller, this.padTop = 8, super.key}) : slivers = null;
 
-  const NxPage.slivers({
-    required List<Widget> this.slivers,
-    this.onRefresh,
-    this.controller,
-    this.padTop = 8,
-    super.key,
-  }) : children = const [];
+  const new slivers({required List<Widget> this.slivers, this.onRefresh, this.controller, this.padTop = 8, super.key})
+    : children = const [];
 
   final List<Widget> children;
   final List<Widget>? slivers;
@@ -67,9 +62,7 @@ class _NxPageState extends State<NxPage> {
     final body =
         widget.slivers ??
         [
-          SliverList.list(
-            children: [for (final (i, child) in widget.children.indexed) _section(i, child)],
-          ),
+          SliverList.list(children: [for (final (i, child) in widget.children.indexed) _section(i, child)]),
         ];
 
     Widget scroll = CustomScrollView(
@@ -102,7 +95,7 @@ class _NxPageState extends State<NxPage> {
 /// Keeps a page section built once seen, so scrolling back doesn't rebuild
 /// it (or replay its entrance).
 class _KeepAlive extends StatefulWidget {
-  const _KeepAlive({required this.child, super.key});
+  const new({required this.child, super.key});
 
   final Widget child;
 
@@ -122,7 +115,7 @@ class _KeepAliveState extends State<_KeepAlive> with AutomaticKeepAliveClientMix
 }
 
 class NxSectionHeader extends StatelessWidget {
-  const NxSectionHeader(this.title, {this.actionLabel, this.onAction, this.top = 30, super.key});
+  const new(this.title, {this.actionLabel, this.onAction, this.top = 30, super.key});
 
   final String title;
   final String? actionLabel;
@@ -158,7 +151,7 @@ class NxSectionHeader extends StatelessWidget {
 }
 
 class NxPanel extends StatelessWidget {
-  const NxPanel({required this.child, this.padding = const EdgeInsets.all(16), this.onTap, super.key});
+  const new({required this.child, this.padding = const EdgeInsets.all(16), this.onTap, super.key});
 
   final Widget child;
   final EdgeInsets padding;
@@ -183,7 +176,7 @@ class NxPanel extends StatelessWidget {
 /// Two-column bento grid for [NxField]s (`span` 1 or 2), matching the phone
 /// layout of web NxBento.
 class NxBento extends StatelessWidget {
-  const NxBento({required this.children, this.gap = 10, this.top = 22, super.key});
+  const new({required this.children, this.gap = 10, this.top = 22, super.key});
 
   final List<Widget> children;
   final double gap;
@@ -245,7 +238,7 @@ mixin BentoItem on Widget {
 
 /// Label/value tiles (web NxFacts).
 class NxFacts extends StatelessWidget {
-  const NxFacts(this.facts, {this.columns = 3, super.key});
+  const new(this.facts, {this.columns = 3, super.key});
 
   final List<(String, String?)> facts;
   final int columns;

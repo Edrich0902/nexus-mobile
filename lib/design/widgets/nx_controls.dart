@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
@@ -11,7 +11,7 @@ import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 /// Scale-down press feedback used by every tappable card (web `:hover`
 /// scale(.985) translated to touch).
 class NxPressable extends StatefulWidget {
-  const NxPressable({
+  const new({
     required this.onTap,
     required this.child,
     this.onLongPress,
@@ -69,7 +69,7 @@ class _NxPressableState extends State<NxPressable> {
 
 /// Pulsing accent dot (live / playing).
 class NxLiveDot extends StatefulWidget {
-  const NxLiveDot({this.color, this.size = 8, super.key});
+  const new({this.color, this.size = 8, super.key});
 
   final Color? color;
   final double size;
@@ -93,7 +93,7 @@ class _NxLiveDotState extends State<NxLiveDot> with SingleTickerProviderStateMix
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || !TickerMode.of(context);
+    _still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || !TickerMode.valuesOf(context).enabled;
     if (_still) {
       _timer?.cancel();
       _timer = null;
@@ -125,7 +125,7 @@ class _NxLiveDotState extends State<NxLiveDot> with SingleTickerProviderStateMix
 }
 
 class NxProgressRail extends StatelessWidget {
-  const NxProgressRail({required this.value, this.color, this.track, this.height = 3, super.key});
+  const new({required this.value, this.color, this.track, this.height = 3, super.key});
 
   final double value;
   final Color? color;
@@ -160,7 +160,7 @@ class NxProgressRail extends StatelessWidget {
 
 /// Small filled/empty pip row (web NxPips), e.g. sweetness 3/5.
 class NxPips extends StatelessWidget {
-  const NxPips({required this.value, this.max = 5, this.color, super.key});
+  const new({required this.value, this.max = 5, this.color, super.key});
 
   final int value;
   final int max;
@@ -194,7 +194,7 @@ enum NxButtonVariant { primary, secondary, ghost, danger, accent }
 
 /// Pill button (web `.btn` / PrimeVue pill actions).
 class NxButton extends StatelessWidget {
-  const NxButton(
+  const new(
     this.label, {
     required this.onPressed,
     this.icon,
@@ -259,11 +259,7 @@ class NxButton extends StatelessWidget {
                 ),
                 child: leading == null
                     ? const SizedBox.shrink(key: ValueKey('none'))
-                    : Padding(
-                        key: leading.key,
-                        padding: const EdgeInsets.only(right: 8),
-                        child: leading,
-                      ),
+                    : Padding(key: leading.key, padding: const EdgeInsets.only(right: 8), child: leading),
               ),
             ),
             Flexible(
@@ -289,7 +285,7 @@ class NxButton extends StatelessWidget {
 }
 
 class NxIconButton extends StatelessWidget {
-  const NxIconButton(
+  const new(
     this.icon, {
     required this.onPressed,
     required this.tooltip,
@@ -358,7 +354,7 @@ class NxIconButton extends StatelessWidget {
 
 /// Toggle chip (web `.chip`, NxChips).
 class NxChip extends StatelessWidget {
-  const NxChip(this.label, {this.selected = false, this.onTap, this.icon, this.color, super.key});
+  const new(this.label, {this.selected = false, this.onTap, this.icon, this.color, super.key});
 
   final String label;
   final bool selected;
@@ -405,7 +401,7 @@ class NxChip extends StatelessWidget {
 
 /// Horizontally scrolling chip row that bleeds to the screen edge.
 class NxChipRow extends StatelessWidget {
-  const NxChipRow({required this.children, this.bleed = 20, super.key});
+  const new({required this.children, this.bleed = 20, super.key});
 
   final List<Widget> children;
   final double bleed;
@@ -430,13 +426,7 @@ class NxChipRow extends StatelessWidget {
 
 /// Segmented pill nav (web NxPillNav / NxPillGroup).
 class NxPillNav<T> extends StatelessWidget {
-  const NxPillNav({
-    required this.items,
-    required this.value,
-    required this.onChanged,
-    this.expand = false,
-    super.key,
-  });
+  const new({required this.items, required this.value, required this.onChanged, this.expand = false, super.key});
 
   final List<(T, String)> items;
   final T value;
@@ -549,7 +539,7 @@ class NxPillNav<T> extends StatelessWidget {
 }
 
 class NxSearchField extends StatelessWidget {
-  const NxSearchField({
+  const new({
     this.controller,
     this.hint = 'Search',
     this.onChanged,
@@ -611,7 +601,7 @@ class NxSearchField extends StatelessWidget {
 
 /// Labelled form input (web `.nx-form .f`).
 class NxTextField extends StatelessWidget {
-  const NxTextField({
+  const new({
     required this.label,
     this.controller,
     this.hint,
@@ -668,7 +658,7 @@ class NxTextField extends StatelessWidget {
 
 /// Read-only star rating with numeric value (web NxRating).
 class NxRating extends StatelessWidget {
-  const NxRating(this.value, {this.size = 13, super.key});
+  const new(this.value, {this.size = 13, super.key});
 
   final double? value;
   final double size;
@@ -697,7 +687,7 @@ class NxRating extends StatelessWidget {
 
 /// Tap / half-tap star input (0.5 steps), used in capture review and detail.
 class NxRatingInput extends StatelessWidget {
-  const NxRatingInput({required this.value, required this.onChanged, this.size = 30, super.key});
+  const new({required this.value, required this.onChanged, this.size = 30, super.key});
 
   final double? value;
   final ValueChanged<double?> onChanged;
@@ -742,7 +732,7 @@ class NxRatingInput extends StatelessWidget {
 
 /// Settings-style row (account sheet, profile).
 class NxListRow extends StatelessWidget {
-  const NxListRow({
+  const new({
     required this.label,
     this.icon,
     this.onTap,

@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
@@ -12,7 +12,7 @@ import 'package:nexus_mobile/features/home/home_modules.dart';
 
 /// Overview / Pairings pills (web foodDrinkNav).
 class FoodDrinkNav extends StatelessWidget {
-  const FoodDrinkNav({required this.value, super.key});
+  const new({required this.value, super.key});
 
   final String value;
 
@@ -28,7 +28,7 @@ String drinkRoute(String? type, int? id) => type == 'beer' ? '/beer/beers/$id' :
 
 /// "Pinotage *with* Bobotie" (web `.pair em`).
 class PairLine extends StatelessWidget {
-  const PairLine({required this.drink, required this.recipe, this.onDrink, this.onRecipe, super.key});
+  const new({required this.drink, required this.recipe, this.onDrink, this.onRecipe, super.key});
 
   final String drink;
   final String recipe;
@@ -61,7 +61,7 @@ class PairLine extends StatelessWidget {
 }
 
 class KindDot extends StatelessWidget {
-  const KindDot({required this.beer, super.key});
+  const new({required this.beer, super.key});
 
   final bool beer;
 
@@ -75,7 +75,7 @@ class KindDot extends StatelessWidget {
 }
 
 class _Recent {
-  const _Recent(this.key, this.kind, this.title, this.sub, this.media, this.src, this.rating, this.to, this.icon);
+  const new(this.key, this.kind, this.title, this.sub, this.media, this.src, this.rating, this.to, this.icon);
 
   final String key;
   final String kind;
@@ -90,7 +90,7 @@ class _Recent {
 
 /// Food & Drink overview (web FoodDrinkView).
 class FoodDrinkScreen extends ConsumerWidget {
-  const FoodDrinkScreen({super.key});
+  const new({super.key});
 
   List<_Recent> _recent(Json d) {
     _Recent r(Json j, String kind, IconData icon, String title, String? sub, String to, [String? src]) => _Recent(
@@ -221,11 +221,7 @@ class FoodDrinkScreen extends ConsumerWidget {
             QuotaBadge(),
           ],
         ),
-        NxSectionHeader(
-          'Try tonight',
-          actionLabel: 'All pairings',
-          onAction: () => context.go('/food-drink/pairings'),
-        ),
+        NxSectionHeader('Try tonight', actionLabel: 'All pairings', onAction: () => context.go('/food-drink/pairings')),
         NxPanel(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: suggestions.isEmpty
@@ -313,7 +309,7 @@ class FoodDrinkScreen extends ConsumerWidget {
 }
 
 class _Mosaic extends StatelessWidget {
-  const _Mosaic({required this.items});
+  const new({required this.items});
 
   final List<_Recent> items;
 

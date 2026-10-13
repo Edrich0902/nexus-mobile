@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/art_ambient.dart';
@@ -11,7 +11,7 @@ import 'package:nexus_mobile/features/listening/player.dart';
 
 /// Album / single cover that opens the album page.
 class AlbumCard extends StatelessWidget {
-  const AlbumCard({required this.album, super.key});
+  const new({required this.album, super.key});
 
   final Json album;
 
@@ -30,7 +30,7 @@ class AlbumCard extends StatelessWidget {
 
 /// Artist portrait that opens the artist page.
 class ArtistCard extends StatelessWidget {
-  const ArtistCard({required this.artist, super.key});
+  const new({required this.artist, super.key});
 
   final Json artist;
 
@@ -47,7 +47,7 @@ class ArtistCard extends StatelessWidget {
 
 /// Web SpotifyArtistView: portrait stage, popular tracks, albums and singles.
 class ArtistScreen extends ConsumerWidget {
-  const ArtistScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final String id;
 
@@ -107,7 +107,7 @@ class ArtistScreen extends ConsumerWidget {
 
 /// Web SpotifyAlbumView: cover stage and the numbered track list.
 class AlbumScreen extends ConsumerWidget {
-  const AlbumScreen({required this.id, super.key});
+  const new({required this.id, super.key});
 
   final String id;
 

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
@@ -26,7 +26,7 @@ const _reviewLabel = {
 /// Web GithubPullDetailView: description, reviews (and a review form),
 /// merge / draft controls and the changed files.
 class GithubPullScreen extends ConsumerStatefulWidget {
-  const GithubPullScreen({required this.owner, required this.repo, required this.number, super.key});
+  const new({required this.owner, required this.repo, required this.number, super.key});
 
   final String owner;
   final String repo;
@@ -259,7 +259,7 @@ class _GithubPullScreenState extends ConsumerState<GithubPullScreen> {
 }
 
 class _ReviewRow extends StatelessWidget {
-  const _ReviewRow({required this.review, required this.first});
+  const new({required this.review, required this.first});
 
   final Json review;
   final bool first;

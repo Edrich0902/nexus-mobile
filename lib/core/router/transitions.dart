@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 
 @visibleForTesting
@@ -23,7 +23,7 @@ GoRoute fadeRoute(String path, Widget Function(GoRouterState state) build, {List
     GoRoute(path: path, pageBuilder: (_, s) => fadeThroughPage(s, build(s)), routes: routes);
 
 class _FadeThrough extends StatelessWidget {
-  const _FadeThrough({required this.animation, required this.child});
+  const new({required this.animation, required this.child});
 
   /// The old content is gone by here; the new content starts after it.
   static const _handover = .35;

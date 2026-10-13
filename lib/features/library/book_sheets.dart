@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -13,7 +13,7 @@ import 'package:nexus_mobile/features/library/library_helpers.dart';
 /// Open Library results as pickable rows with a small cover (web
 /// BookCandidates).
 class BookCandidates extends StatelessWidget {
-  const BookCandidates({required this.items, required this.onPick, super.key});
+  const new({required this.items, required this.onPick, super.key});
 
   final List<Json> items;
   final ValueChanged<Json> onPick;
@@ -77,7 +77,7 @@ Future<Json?> showAddBookSheet(BuildContext context, {String? initialQuery}) => 
 );
 
 class _AddBook extends ConsumerStatefulWidget {
-  const _AddBook({this.initialQuery});
+  const new({this.initialQuery});
 
   final String? initialQuery;
 
@@ -245,7 +245,7 @@ Future<void> showEditBookSheet(BuildContext context, Json book) => showNxSheet<v
 );
 
 class _EditBook extends ConsumerStatefulWidget {
-  const _EditBook({required this.book});
+  const new({required this.book});
 
   final Json book;
 
@@ -365,7 +365,7 @@ Future<void> showMatchBookSheet(BuildContext context, int bookId) => showNxSheet
 );
 
 class _MatchBook extends ConsumerStatefulWidget {
-  const _MatchBook({required this.bookId});
+  const new({required this.bookId});
 
   final int bookId;
 

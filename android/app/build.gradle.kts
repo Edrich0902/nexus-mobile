@@ -16,7 +16,8 @@ val keyProperties = Properties().apply {
 
 android {
     namespace = "app.nexus.nexus_mobile"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android (via live_activities) needs API 37; Flutter defaults to 36.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -25,13 +26,10 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
         applicationId = "app.nexus.nexus_mobile"
-        minSdk = maxOf(flutter.minSdkVersion, 24)
+        // sentry_flutter 10 requires API 26 (Android 8.0).
+        minSdk = maxOf(flutter.minSdkVersion, 26)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -56,6 +54,12 @@ android {
                 signingConfigs.getByName("debug")
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 

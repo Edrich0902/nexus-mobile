@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 
 import '../support/fakes.dart';
 
 class _Counter extends StatefulWidget {
-  const _Counter();
+  const new();
 
   @override
   State<_Counter> createState() => _CounterState();
@@ -48,9 +48,8 @@ void main() {
   });
 
   testWidgets('NxAsync cross-fades from loading to data and settles', (tester) async {
-    Widget at(AsyncValue<String> v) => nexusTestApp(
-      NxAsync<String>(value: v, loading: const Text('loading'), data: Text.new),
-    );
+    Widget at(AsyncValue<String> v) =>
+        nexusTestApp(NxAsync<String>(value: v, loading: const Text('loading'), data: Text.new));
     await tester.pumpWidget(at(const AsyncLoading()));
     expect(find.text('loading'), findsOneWidget);
 

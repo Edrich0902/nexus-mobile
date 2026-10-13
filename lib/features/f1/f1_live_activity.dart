@@ -55,7 +55,7 @@ final f1LiveActivityProvider = Provider<F1LiveActivity>((ref) {
 /// countdown runs natively from the start / end timestamps.
 /// Android: an ongoing, silent notification with a chronometer.
 class F1LiveActivity {
-  F1LiveActivity(this._ref);
+  new(this._ref);
 
   final Ref _ref;
   final _activities = LiveActivities();
@@ -93,7 +93,7 @@ class F1LiveActivity {
 
   Future<void> _sync() async {
     final live = liveSessionFrom(_ref.read(nowProvider).value, DateTime.now());
-    if (live == null) return _end();
+    if (live == null) return await _end();
     if (!await (_ready ??= _init())) return;
     if (_current != null && _current != live.id) await _end();
     _current = live.id;

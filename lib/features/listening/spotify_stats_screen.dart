@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/design/profile.dart';
@@ -25,7 +25,7 @@ const _daypartHours = {
 /// Web SpotifyStatsView: how you listen — top artists and tracks by range,
 /// dayparts, weekdays, on repeat, genres and the sound of your week.
 class SpotifyStatsScreen extends ConsumerStatefulWidget {
-  const SpotifyStatsScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<SpotifyStatsScreen> createState() => _SpotifyStatsScreenState();

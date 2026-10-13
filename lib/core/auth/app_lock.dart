@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppLockState {
-  const AppLockState({this.enabled = false, this.locked = false, this.supported = false});
+  const new({this.enabled = false, this.locked = false, this.supported = false});
 
   final bool enabled;
   final bool locked;
@@ -96,7 +96,7 @@ class AppLockController extends Notifier<AppLockState> {
 
 /// Covers the app while locked (and only while signed in).
 class AppLockGate extends ConsumerWidget {
-  const AppLockGate({required this.child, super.key});
+  const new({required this.child, super.key});
 
   final Widget child;
 

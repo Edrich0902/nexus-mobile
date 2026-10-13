@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/meta/app_meta.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/shell/update_gate.dart';
@@ -51,7 +51,7 @@ void main() {
         ),
       ),
     );
-    expect(tester.getSemantics(find.byType(NxPressable)), containsSemantics(isButton: true, label: 'Open wine'));
+    expect(tester.getSemantics(find.byType(NxPressable)), isSemantics(isButton: true, label: 'Open wine'));
     await tester.tap(find.text('Chryseia'));
     expect(taps, 1);
     handle.dispose();

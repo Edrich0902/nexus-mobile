@@ -14,10 +14,7 @@ void main() {
   });
 
   test('recipeSteps splits on line breaks, step labels and sentences', () {
-    expect(recipeSteps('STEP 1\nChop the onions.\nSTEP 2\nFry them gently.'), [
-      'Chop the onions.',
-      'Fry them gently.',
-    ]);
+    expect(recipeSteps('STEP 1\nChop the onions.\nSTEP 2\nFry them gently.'), ['Chop the onions.', 'Fry them gently.']);
     expect(recipeSteps('1. Boil water\n2) Add pasta'), ['Boil water', 'Add pasta']);
     expect(recipeSteps('Preheat the oven to 200C. Roast the vegetables until golden.'), [
       'Preheat the oven to 200C.',

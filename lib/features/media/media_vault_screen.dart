@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/paged.dart';
@@ -36,7 +36,7 @@ final mediaUsageProvider = FutureProvider.autoDispose<Json>(
 /// Web MediaVaultView: Cloudinary usage, every image across Nexus, filters,
 /// upload and delete (with a forced delete when the image is still in use).
 class MediaVaultScreen extends ConsumerStatefulWidget {
-  const MediaVaultScreen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<MediaVaultScreen> createState() => _MediaVaultScreenState();
@@ -184,25 +184,25 @@ class _MediaVaultScreenState extends ConsumerState<MediaVaultScreen> with Deboun
           onSubmitted: submitSearch,
         ),
         const SizedBox(height: 16),
-        if (s == null)
-          list.hasError
-              ? NxErrorState(error: list.error!, onRetry: () => ref.invalidate(pagedProvider(_query)))
-              : const NxSkeleton(height: 320, radius: NxRadius.lg)
+        if (s == null && list.hasError)
+          NxErrorState(error: list.error!, onRetry: () => ref.invalidate(pagedProvider(_query)))
+        else if (s == null)
+          const NxSkeleton(height: 320, radius: NxRadius.lg)
+        else if (s.items.isEmpty && filtered)
+          const NxEmptyState(
+            compact: true,
+            icon: LucideIcons.search,
+            title: 'Nothing matches',
+            body: 'Try another collection, source or search.',
+          )
         else if (s.items.isEmpty)
-          filtered
-              ? const NxEmptyState(
-                  compact: true,
-                  icon: LucideIcons.search,
-                  title: 'Nothing matches',
-                  body: 'Try another collection, source or search.',
-                )
-              : NxEmptyState(
-                  icon: LucideIcons.image,
-                  title: 'The vault is empty',
-                  body: 'Upload from your device or pick a photo from Unsplash to get started.',
-                  actionLabel: 'Upload an image',
-                  onAction: _upload,
-                )
+          NxEmptyState(
+            icon: LucideIcons.image,
+            title: 'The vault is empty',
+            body: 'Upload from your device or pick a photo from Unsplash to get started.',
+            actionLabel: 'Upload an image',
+            onAction: _upload,
+          )
         else ...[
           Text(plural(s.total, 'image'), style: NxText.muted(context, size: 12.5)),
           const SizedBox(height: 10),
@@ -285,7 +285,7 @@ class _MediaVaultScreenState extends ConsumerState<MediaVaultScreen> with Deboun
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.asset, required this.onDelete});
+  const new({required this.asset, required this.onDelete});
 
   final Json asset;
   final VoidCallback onDelete;
@@ -303,10 +303,7 @@ class _Tile extends StatelessWidget {
           GestureDetector(
             onTap: () =>
                 showImagePreview(context, media: media, label: asset.str('alt_text') ?? asset.str('public_id')),
-            child: NxImage(
-              media: media,
-              semanticLabel: asset.str('alt_text') ?? asset.str('public_id'),
-            ),
+            child: NxImage(media: media, semanticLabel: asset.str('alt_text') ?? asset.str('public_id')),
           ),
           Positioned(
             left: 0,

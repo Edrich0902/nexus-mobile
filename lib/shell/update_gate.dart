@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/config/app_config.dart';
 import 'package:nexus_mobile/core/meta/app_meta.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
@@ -18,7 +18,7 @@ String? storeUrl(TargetPlatform platform, {String appStoreId = AppConfig.appStor
 /// Blocks the app when `GET /v1/meta` says this build is below the minimum
 /// supported version (an API change the app can't speak yet).
 class UpdateGate extends ConsumerWidget {
-  const UpdateGate({required this.child, super.key});
+  const new({required this.child, super.key});
 
   final Widget child;
 
@@ -31,7 +31,7 @@ class UpdateGate extends ConsumerWidget {
 }
 
 class _UpdateRequired extends StatelessWidget {
-  const _UpdateRequired({required this.meta});
+  const new({required this.meta});
 
   final AppMeta meta;
 
@@ -61,12 +61,7 @@ class _UpdateRequired extends StatelessWidget {
               ),
               const Spacer(),
               if (url != null)
-                NxButton(
-                  'Open the store',
-                  icon: LucideIcons.download,
-                  wide: true,
-                  onPressed: () => openExternal(url),
-                )
+                NxButton('Open the store', icon: LucideIcons.download, wide: true, onPressed: () => openExternal(url))
               else
                 Text('Install the latest build from TestFlight.', style: NxText.muted(context, size: 14)),
             ],

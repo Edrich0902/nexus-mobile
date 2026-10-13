@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/f1/f1.dart';
@@ -10,7 +10,7 @@ import 'package:nexus_mobile/features/f1/f1_widgets.dart';
 /// Web F1View: countdown stage, championship podium, the weekend timeline,
 /// the rest of the field, constructors and the season calendar.
 class F1Screen extends ConsumerStatefulWidget {
-  const F1Screen({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<F1Screen> createState() => _F1ScreenState();
@@ -80,7 +80,7 @@ class _F1ScreenState extends ConsumerState<F1Screen> {
 }
 
 class _Season extends StatelessWidget {
-  const _Season({
+  const new({
     required this.season,
     required this.standings,
     required this.now,
@@ -132,7 +132,7 @@ class _Season extends StatelessWidget {
         : [
             if (roundIndex >= 0) 'Round ${roundIndex + 1} of ${championship.length}' else 'Testing',
             next.text('meeting_name'),
-            if (focus != null) live ? 'On track now' : '${focus.text('session_name')} in',
+            if (focus != null && live) 'On track now' else if (focus != null) '${focus.text('session_name')} in',
           ].join(' · ');
 
     final lede = () {
@@ -234,7 +234,7 @@ class _Season extends StatelessWidget {
 }
 
 class _Loading extends StatelessWidget {
-  const _Loading();
+  const new();
 
   @override
   Widget build(BuildContext context) => const Column(

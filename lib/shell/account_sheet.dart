@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/auth/app_lock.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
@@ -11,7 +11,7 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 Future<void> showAccountSheet(BuildContext context) => showNxSheet<void>(context, builder: (_) => const _AccountBody());
 
 class _AccountBody extends ConsumerWidget {
-  const _AccountBody();
+  const new();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,10 +55,7 @@ class _AccountBody extends ConsumerWidget {
             NxListRow(
               label: 'Unlock with Face ID',
               icon: LucideIcons.scanFace,
-              trailing: Switch(
-                value: lock.enabled,
-                onChanged: (v) => ref.read(appLockProvider.notifier).setEnabled(v),
-              ),
+              trailing: Switch(value: lock.enabled, onChanged: (v) => ref.read(appLockProvider.notifier).setEnabled(v)),
             ),
           const SizedBox(height: 8),
           Divider(color: c.line, height: 1),

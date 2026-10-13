@@ -5,7 +5,7 @@ import 'package:nexus_mobile/design/tokens.g.dart';
 /// Mirrors web `design/navigation.ts` so both clients share destinations,
 /// section colours and path → section mapping.
 class Destination {
-  const Destination(this.key, this.label, this.icon, this.to, this.section, {this.keywords = const []});
+  const new(this.key, this.label, this.icon, this.to, this.section, {this.keywords = const []});
 
   final String key;
   final String label;

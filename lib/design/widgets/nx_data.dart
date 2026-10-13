@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/media/media_image.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/profile.dart';
@@ -11,7 +11,7 @@ import 'package:nexus_mobile/design/widgets/nx_media.dart';
 
 /// Big display number with label + sub (web NxStatNumber).
 class NxStatNumber extends StatelessWidget {
-  const NxStatNumber({required this.value, required this.label, this.sub, this.size = 40, super.key});
+  const new({required this.value, required this.label, this.sub, this.size = 40, super.key});
 
   final String value;
   final String label;
@@ -42,7 +42,7 @@ class NxStatNumber extends StatelessWidget {
 
 /// Labelled 0–1 bars (web NxMeters / `.scale`).
 class NxMeters extends StatelessWidget {
-  const NxMeters(this.rows, {this.labelWidth = 70, this.showWords = false, this.stacked = false, super.key});
+  const new(this.rows, {this.labelWidth = 70, this.showWords = false, this.stacked = false, super.key});
 
   final List<ProfileAxis> rows;
   final double labelWidth;
@@ -98,7 +98,7 @@ class NxMeters extends StatelessWidget {
 
 /// Five-spoke taste radar (web NxRadar).
 class NxRadar extends StatelessWidget {
-  const NxRadar(this.values, {this.size = 88, super.key});
+  const new(this.values, {this.size = 88, super.key});
 
   final List<double> values;
   final double size;
@@ -121,7 +121,7 @@ class NxRadar extends StatelessWidget {
 }
 
 class _RadarPainter extends CustomPainter {
-  _RadarPainter({required this.values, required this.grow, required this.grid, required this.acc});
+  new({required this.values, required this.grow, required this.grid, required this.acc});
 
   final List<double> values;
   final double grow;
@@ -178,7 +178,7 @@ class _RadarPainter extends CustomPainter {
 
 /// Ranked row with optional artwork (web NxRankList item).
 class NxRankRow extends StatelessWidget {
-  const NxRankRow({
+  const new({
     required this.rank,
     required this.title,
     this.subtitle,
@@ -214,10 +214,7 @@ class NxRankRow extends StatelessWidget {
           if (rank != null)
             SizedBox(
               width: 28,
-              child: Text(
-                '$rank',
-                style: NxText.display(size: 18, color: rank! <= 3 ? c.acc : c.ink3),
-              ),
+              child: Text('$rank', style: NxText.display(size: 18, color: rank! <= 3 ? c.acc : c.ink3)),
             ),
           if (hasArt) ...[
             SizedBox(
@@ -266,7 +263,7 @@ class NxRankRow extends StatelessWidget {
 /// Activity bars (web NxHourBars). Defaults to 24-hour ticks; pass [ticks]
 /// (one per bar) for dayparts or weekdays.
 class NxHourBars extends StatelessWidget {
-  const NxHourBars(this.values, {this.height = 72, this.ticks, super.key});
+  const new(this.values, {this.height = 72, this.ticks, super.key});
 
   final List<num> values;
   final double height;
@@ -337,7 +334,7 @@ class NxHourBars extends StatelessWidget {
 
 /// Doughnut with a legend (web NexusChart `type="doughnut"`).
 class NxDonut extends StatelessWidget {
-  const NxDonut(this.segments, {this.size = 132, this.centre, this.centreLabel, super.key});
+  const new(this.segments, {this.size = 132, this.centre, this.centreLabel, super.key});
 
   /// (label, value, colour)
   final List<(String, num, Color)> segments;
@@ -408,7 +405,7 @@ class NxDonut extends StatelessWidget {
 }
 
 class _DonutPainter extends CustomPainter {
-  _DonutPainter({required this.segments, required this.total, required this.sweep, required this.track});
+  new({required this.segments, required this.total, required this.sweep, required this.track});
 
   final List<(String, num, Color)> segments;
   final num total;
@@ -452,7 +449,7 @@ class _DonutPainter extends CustomPainter {
 
 /// Labelled horizontal bar comparison (web NxRangeBar / constructor bars).
 class NxBarRow extends StatelessWidget {
-  const NxBarRow({required this.label, required this.value, required this.max, this.color, this.trailing, super.key});
+  const new({required this.label, required this.value, required this.max, this.color, this.trailing, super.key});
 
   final String label;
   final double value;

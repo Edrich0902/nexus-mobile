@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/core/auth/session.dart';
@@ -27,7 +27,7 @@ class MemorySessionStore extends SessionStore {
 
 /// Routes `METHOD /path` to canned handlers and records every call.
 class FakeApi extends ApiClient {
-  FakeApi(this.routes) : super(MemorySessionStore());
+  new(this.routes) : super(MemorySessionStore());
 
   final Map<String, Handler> routes;
   final calls = <String>[];
@@ -53,7 +53,7 @@ class FakeApi extends ApiClient {
 }
 
 class FakePush extends PushNotifications {
-  FakePush(super._ref);
+  new(super._ref);
 
   int unregistered = 0;
 

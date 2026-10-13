@@ -9,10 +9,12 @@ import 'package:nexus_mobile/core/native/push.dart';
 import '../support/fakes.dart';
 
 Future<AuthState> _settled(ProviderContainer container) async {
-  for (var i = 0; i < 20 && container.read(authProvider) is AuthUnknown; i++) {
+  var state = container.read<AuthState>(authProvider);
+  for (var i = 0; i < 20 && state is AuthUnknown; i++) {
     await Future<void>.delayed(Duration.zero);
+    state = container.read<AuthState>(authProvider);
   }
-  return container.read(authProvider);
+  return state;
 }
 
 void main() {

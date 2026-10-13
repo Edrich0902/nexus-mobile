@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/auth/auth.dart';
 import 'package:nexus_mobile/design/palettes.dart';
@@ -32,7 +32,7 @@ Map<String, Handler> _spotify({Handler? contains}) => {
 /// Rebuilds a fresh (but identical) track list on every player change, the
 /// way the Listening screen builds its sections.
 class _FreshTracks extends ConsumerWidget {
-  const _FreshTracks();
+  const new();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
 import 'package:nexus_mobile/design/theme.dart' show buildNexusTheme;
 import 'package:nexus_mobile/design/tokens.g.dart';
@@ -9,7 +9,7 @@ import 'package:nexus_mobile/design/tokens.g.dart';
 /// mounted screen can push a temporary override (album art, a wine's style).
 @immutable
 class AmbientState {
-  const AmbientState({this.section = SectionKey.home, this.overrides = const []});
+  const new({this.section = SectionKey.home, this.overrides = const []});
 
   final SectionKey section;
   final List<(int, Ambient)> overrides;
@@ -39,7 +39,12 @@ class AmbientController extends Notifier<AmbientState> {
   }
 
   void update(int id, Ambient ambient) {
-    state = state.copyWith(overrides: [for (final o in state.overrides) o.$1 == id ? (id, ambient) : o]);
+    state = state.copyWith(
+      overrides: [
+        for (final o in state.overrides)
+          if (o.$1 == id) (id, ambient) else o,
+      ],
+    );
   }
 
   void remove(int id) {
@@ -50,7 +55,7 @@ class AmbientController extends Notifier<AmbientState> {
 /// Animates the whole app's theme between ambients over 900 ms with the
 /// shared ease curve, like the `@property` transition on web.
 class AmbientTheme extends ConsumerWidget {
-  const AmbientTheme({required this.child, super.key});
+  const new({required this.child, super.key});
 
   final Widget child;
 
@@ -83,7 +88,7 @@ ThemeData _themeFor(Ambient a) => _themeCache.putIfAbsent(a, () {
 /// Tint the app while this widget is mounted. Pass null to fall back to the
 /// route's section ambient.
 class AmbientOverride extends ConsumerStatefulWidget {
-  const AmbientOverride({required this.ambient, required this.child, super.key});
+  const new({required this.ambient, required this.child, super.key});
 
   final Ambient? ambient;
   final Widget child;

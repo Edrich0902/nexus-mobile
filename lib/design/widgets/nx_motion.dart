@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 
 /// UI timings on top of the generated web [NxMotion] tokens: quick for
@@ -28,7 +28,7 @@ bool reduceMotion(BuildContext context) => MediaQuery.maybeDisableAnimationsOf(c
 /// mounts already settled (the tree shape stays the same either way, so
 /// flipping it never rebuilds [child]).
 class NxRise extends StatelessWidget {
-  const NxRise({
+  const new({
     required this.child,
     this.delay = Duration.zero,
     this.index = 0,
@@ -67,7 +67,7 @@ class NxRise extends StatelessWidget {
 /// fades out quickly, then the new one rises in — never both at once. Give
 /// each state a distinct key; same-key rebuilds don't animate.
 class NxSwitcher extends StatelessWidget {
-  const NxSwitcher({required this.child, this.alignment = Alignment.topCenter, super.key});
+  const new({required this.child, this.alignment = Alignment.topCenter, super.key});
 
   /// Share of the entrance spent waiting for the outgoing child (which takes
   /// [NxTiming.fast]) to clear.
@@ -101,7 +101,7 @@ class NxSwitcher extends StatelessWidget {
 /// Shakes [child] side to side whenever [trigger] changes to a new non-null
 /// value: the "that didn't work" nudge for a rejected form.
 class NxShake extends StatefulWidget {
-  const NxShake({required this.trigger, required this.child, super.key});
+  const new({required this.trigger, required this.child, super.key});
 
   final Object? trigger;
   final Widget child;
@@ -139,7 +139,7 @@ class _NxShakeState extends State<NxShake> with SingleTickerProviderStateMixin {
 /// A grouped integer ("1,204") that counts up the first time it's shown and
 /// glides to new values after. Anything non-numeric ("4d", "—") renders as is.
 class NxCountUp extends StatelessWidget {
-  const NxCountUp(this.value, {required this.style, super.key});
+  const new(this.value, {required this.style, super.key});
 
   final String value;
   final TextStyle style;
