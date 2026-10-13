@@ -72,9 +72,7 @@ void main() {
   final moments = json['moments'] as Map<String, dynamic>;
   out.writeln('abstract final class NxMoments {');
   moments.forEach((k, v) {
-    out.writeln(
-      '  static const $k = ${ambient(v as Map<String, dynamic>)};',
-    );
+    out.writeln('  static const $k = ${ambient(v as Map<String, dynamic>)};');
   });
   out
     ..writeln('}')
@@ -121,20 +119,17 @@ void main() {
     ..writeln();
 
   final motion = json['motion'] as Map<String, dynamic>;
-  final ease = RegExp(
-    r'cubic-bezier\(([^)]+)\)',
-  ).firstMatch(motion['ease'] as String)!.group(1)!.split(',').map((s) => double.parse(s.trim())).toList();
+  final ease = RegExp(r'cubic-bezier\(([^)]+)\)')
+      .firstMatch(motion['ease'] as String)!
+      .group(1)!
+      .split(',')
+      .map((s) => double.parse(s.trim()))
+      .toList();
   out
     ..writeln('abstract final class NxMotion {')
-    ..writeln(
-      '  static const ambient = Duration(milliseconds: ${motion['ambientMs']});',
-    )
-    ..writeln(
-      '  static const enter = Duration(milliseconds: ${motion['enterMs']});',
-    )
-    ..writeln(
-      '  static const hover = Duration(milliseconds: ${motion['hoverMs']});',
-    )
+    ..writeln('  static const ambient = Duration(milliseconds: ${motion['ambientMs']});')
+    ..writeln('  static const enter = Duration(milliseconds: ${motion['enterMs']});')
+    ..writeln('  static const hover = Duration(milliseconds: ${motion['hoverMs']});')
     ..writeln('  static const ease = Cubic(${ease.join(', ')});')
     ..writeln('}');
 
