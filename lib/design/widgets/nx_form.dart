@@ -2,9 +2,9 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
-import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
+import 'package:nexus_mobile/design/widgets/nx_glass.dart';
 import 'package:nexus_mobile/design/widgets/nx_sheet.dart';
 
 /// Labelled slot for non-text inputs (rating, segmented choice) so they line
@@ -117,11 +117,7 @@ class _FieldShell extends StatelessWidget {
           child: Container(
             height: 50,
             padding: const EdgeInsets.only(left: 14, right: 6),
-            decoration: BoxDecoration(
-              color: c.tint,
-              borderRadius: BorderRadius.circular(NxRadius.md),
-              border: Border.all(color: c.lineStrong),
-            ),
+            decoration: nxWell(c),
             child: Row(
               children: [
                 Expanded(

@@ -32,12 +32,15 @@ class _AppShellState extends ConsumerState<AppShell> {
   final _backdrop = BackdropKey();
   final _collapsed = ValueNotifier(false);
 
+  /// Inside [ShellInsets], so toasts raised here clear the phone bar.
+  final _body = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     _syncSection();
     _playerErrors = ref.read(playerProvider.notifier).errors.stream.listen((m) {
-      if (mounted) showNxToast(context, m, error: true);
+      if (mounted) showNxToast(_body.currentContext ?? context, m, error: true);
     });
   }
 
@@ -91,6 +94,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         child: BackdropGroup(
           backdropKey: _backdrop,
           child: Stack(
+            key: _body,
             children: [
               Positioned.fill(
                 child: NotificationListener<ScrollUpdateNotification>(onNotification: _onScroll, child: widget.child),

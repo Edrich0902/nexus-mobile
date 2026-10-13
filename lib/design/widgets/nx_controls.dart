@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
+import 'package:nexus_mobile/design/widgets/nx_glass.dart';
 import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
 /// Scale-down press feedback used by every tappable card (web `:hover`
@@ -242,7 +243,12 @@ class NxButton extends StatelessWidget {
         height: height,
         width: wide ? double.infinity : null,
         padding: EdgeInsets.symmetric(horizontal: compact ? 14 : 18),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(NxRadius.pill)),
+        decoration: variant == NxButtonVariant.ghost
+            ? null
+            : ShapeDecoration(
+                color: bg,
+                shape: NxGlassBorder.raised(c, radius: NxRadius.pill),
+              ),
         child: Row(
           mainAxisSize: wide ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -311,7 +317,12 @@ class NxIconButton extends StatelessWidget {
       width: size,
       height: size,
       alignment: Alignment.center,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: filled ? c.tint2 : Colors.transparent),
+      decoration: filled
+          ? ShapeDecoration(
+              color: c.tint2,
+              shape: NxGlassBorder.raised(c, radius: NxRadius.pill),
+            )
+          : null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -370,10 +381,11 @@ class NxChip extends StatelessWidget {
       duration: NxMotion.hover,
       curve: NxMotion.ease,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: selected ? on : c.tint,
-        borderRadius: BorderRadius.circular(NxRadius.pill),
-        border: Border.all(color: selected ? on : c.line),
+        shape: selected
+            ? NxGlassBorder.solid(on, radius: NxRadius.pill, width: 1)
+            : NxGlassBorder.raised(c, radius: NxRadius.pill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -424,6 +436,14 @@ class NxChipRow extends StatelessWidget {
   }
 }
 
+/// An unselected pill: [nxLens] faded out, so the selection animates.
+const _clearLens = ShapeDecoration(
+  shape: NxGlassBorder(
+    colors: [Colors.transparent, Colors.transparent, Colors.transparent, Colors.transparent],
+    radius: NxRadius.pill,
+  ),
+);
+
 /// Segmented pill nav (web NxPillNav / NxPillGroup).
 class NxPillNav<T> extends StatelessWidget {
   const new({required this.items, required this.value, required this.onChanged, this.expand = false, super.key});
@@ -449,7 +469,7 @@ class NxPillNav<T> extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Container(
         padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(color: c.tint, borderRadius: BorderRadius.circular(NxRadius.pill)),
+        decoration: nxWell(c, radius: NxRadius.pill),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -463,13 +483,10 @@ class NxPillNav<T> extends StatelessWidget {
                     duration: NxMotion.hover,
                     curve: NxMotion.ease,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: v == value ? c.ink : Colors.transparent,
-                      borderRadius: BorderRadius.circular(NxRadius.pill),
-                    ),
+                    decoration: v == value ? nxLens(c) : _clearLens,
                     child: Text(
                       label,
-                      style: NxText.sans(size: 13, weight: FontWeight.w600, color: v == value ? c.amb : c.ink2),
+                      style: NxText.sans(size: 13, weight: FontWeight.w600, color: v == value ? c.ink : c.ink3),
                     ),
                   ),
                 ),
@@ -486,7 +503,7 @@ class NxPillNav<T> extends StatelessWidget {
     return Container(
       height: 42,
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: c.tint, borderRadius: BorderRadius.circular(NxRadius.pill)),
+      decoration: nxWell(c, radius: NxRadius.pill),
       child: LayoutBuilder(
         builder: (context, box) {
           final width = box.maxWidth / items.length;
@@ -500,9 +517,7 @@ class NxPillNav<T> extends StatelessWidget {
                   top: 0,
                   bottom: 0,
                   width: width,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: c.ink, borderRadius: BorderRadius.circular(NxRadius.pill)),
-                  ),
+                  child: const NxGlassLens(),
                 ),
               Row(
                 children: [
@@ -520,7 +535,7 @@ class NxPillNav<T> extends StatelessWidget {
                               style: NxText.sans(
                                 size: 13,
                                 weight: FontWeight.w600,
-                                color: i == selected ? c.amb : c.ink2,
+                                color: i == selected ? c.ink : c.ink3,
                               ),
                               child: Text(label, maxLines: 1, overflow: TextOverflow.fade, softWrap: false),
                             ),
@@ -564,11 +579,7 @@ class NxSearchField extends StatelessWidget {
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: c.tint,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.lineStrong),
-      ),
+      decoration: nxWell(c, radius: 16),
       child: Row(
         children: [
           Icon(LucideIcons.search, size: 18, color: c.ink3),

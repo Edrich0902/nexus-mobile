@@ -4,6 +4,7 @@ import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_field.dart' show NxField;
+import 'package:nexus_mobile/design/widgets/nx_glass.dart';
 import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart' show NxField;
 
@@ -162,10 +163,9 @@ class NxPanel extends StatelessWidget {
     final c = context.nx;
     final box = Container(
       padding: padding,
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(NxRadius.xl),
-        border: Border.all(color: c.line),
+      decoration: ShapeDecoration(
+        color: c.tint,
+        shape: NxGlassBorder.raised(c, radius: NxRadius.xl),
       ),
       child: child,
     );
