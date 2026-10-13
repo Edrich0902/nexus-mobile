@@ -68,7 +68,7 @@ Future<T?> showNxSheet<T>(
         child: NxGlass(
           radius: _radius,
           thick: true,
-          child: expand ? SizedBox(height: mq.size.height * .88 - lift, child: content) : content,
+          child: expand ? SizedBox(height: math.max(mq.size.height * .88 - lift, 0), child: content) : content,
         ),
       );
     },

@@ -250,7 +250,7 @@ class _TabBarState extends State<_TabBar> with TickerProviderStateMixin {
     _lift.reverse();
     setState(() => _hover = null);
     _springTo(_leftFor(items.indexOf(item)), _settle);
-    if (widget.location != item.dest.to) {
+    if (!item.active) {
       unawaited(HapticFeedback.lightImpact());
       context.go(item.dest.to);
     }
