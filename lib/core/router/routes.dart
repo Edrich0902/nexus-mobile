@@ -36,6 +36,7 @@ import 'package:nexus_mobile/features/media/media_vault_screen.dart';
 import 'package:nexus_mobile/features/profile/profile_screen.dart';
 import 'package:nexus_mobile/features/profile/sessions_screen.dart';
 import 'package:nexus_mobile/features/sports/sport_screen.dart';
+import 'package:nexus_mobile/shell/more_screen.dart';
 
 int _id(GoRouterState s, String name) => int.tryParse(s.pathParameters[name] ?? '') ?? 0;
 
@@ -193,6 +194,7 @@ final appRoutes = <RouteBase>[
       ),
     ],
   ),
+  fadeRoute('/more', (_) => const MoreScreen()),
   fadeRoute('/media', (_) => const MediaVaultScreen()),
   fadeRoute('/admin', (_) => const AdminScreen()),
   fadeRoute(

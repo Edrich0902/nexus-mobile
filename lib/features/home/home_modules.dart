@@ -181,7 +181,12 @@ final homeModulesProvider = Provider<HomeModules>((ref) {
       section: SectionKey.library,
       label: reading != null ? 'Reading' : 'Library',
       value: _n(library.obj('counts')?.integer('reading')),
-      sub: reading?.str('title') ?? '${_n(library.obj('counts')?.integer('total'))} books',
+      sub:
+          reading?.str('title') ??
+          switch (library.obj('counts')?.integer('total')) {
+            1 => '1 book',
+            final total => '${_n(total)} books',
+          },
       to: reading != null ? '/library/books/${reading.integer('id')}' : '/library',
     ),
     HomeField(

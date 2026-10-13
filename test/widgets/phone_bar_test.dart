@@ -59,7 +59,7 @@ void main() {
     expect(expands, 1);
   });
 
-  testWidgets('dragging the lens onto another tab opens it', (tester) async {
+  testWidgets('dragging the lens onto another tab opens it, and More is a page', (tester) async {
     tester.view
       ..physicalSize = const Size(390, 844)
       ..devicePixelRatio = 1;
@@ -80,7 +80,9 @@ void main() {
               ],
             ),
           ),
-          routes: [for (final d in Nav.phoneTabs) GoRoute(path: d.to, builder: (_, _) => const SizedBox())],
+          routes: [
+            for (final d in [...Nav.phoneTabs, Nav.more]) GoRoute(path: d.to, builder: (_, _) => const SizedBox()),
+          ],
         ),
       ],
     );
@@ -115,5 +117,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(router.state.uri.path, Nav.f1.to);
+
+    await tester.tap(find.text(Nav.more.label));
+    await tester.pumpAndSettle();
+    expect(router.state.uri.path, Nav.more.to);
   });
 }

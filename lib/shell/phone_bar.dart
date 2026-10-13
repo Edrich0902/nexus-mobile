@@ -13,7 +13,6 @@ import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/listening/live_position.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/player_sheet.dart';
-import 'package:nexus_mobile/shell/more_sheet.dart';
 import 'package:nexus_mobile/shell/search_sheet.dart';
 
 /// Floating glass dock (iOS 26 style, same on Android): a tab bar with a
@@ -109,7 +108,7 @@ class PhoneBar extends ConsumerWidget {
   }
 }
 
-typedef _TabItem = ({IconData icon, String label, bool active, bool navigates, VoidCallback onTap});
+typedef _TabItem = ({Destination dest, bool active});
 
 /// Tabs on a glass lens you can tap or drag. While held the lens lifts,
 /// follows the finger and stretches with its speed; released, it springs
@@ -158,26 +157,9 @@ class _TabBarState extends State<_TabBar> with TickerProviderStateMixin {
   int _activeIndex(List<_TabItem> items) => items.indexWhere((t) => t.active);
 
   List<_TabItem> _items() {
-    final tabs = [
-      for (final d in Nav.phoneTabs)
-        (
-          icon: d.icon,
-          label: d.label,
-          active: Nav.isActive(d, widget.location),
-          navigates: true,
-          onTap: () => context.go(d.to),
-        ),
-    ];
-    return [
-      ...tabs,
-      (
-        icon: LucideIcons.sparkles,
-        label: 'More',
-        active: !tabs.any((t) => t.active),
-        navigates: false,
-        onTap: () => showMoreSheet(context, widget.location),
-      ),
-    ];
+    final tabs = [for (final d in Nav.phoneTabs) (dest: d, active: Nav.isActive(d, widget.location))];
+    // Sections outside the tab bar live under More, so it stays lit there.
+    return [...tabs, (dest: Nav.more, active: !tabs.any((t) => t.active))];
   }
 
   @override
@@ -267,10 +249,10 @@ class _TabBarState extends State<_TabBar> with TickerProviderStateMixin {
     final item = items[_indexAt(projected)];
     _lift.reverse();
     setState(() => _hover = null);
-    _springTo(_leftFor(item.navigates || item.active ? items.indexOf(item) : _activeIndex(items)), _settle);
-    if (!item.active) {
+    _springTo(_leftFor(items.indexOf(item)), _settle);
+    if (widget.location != item.dest.to) {
       unawaited(HapticFeedback.lightImpact());
-      item.onTap();
+      context.go(item.dest.to);
     }
   }
 
@@ -336,10 +318,10 @@ class _TabBarState extends State<_TabBar> with TickerProviderStateMixin {
                       children: [
                         for (final (i, t) in items.indexed)
                           _Tab(
-                            icon: t.icon,
-                            label: t.label,
+                            icon: t.dest.icon,
+                            label: t.dest.label,
                             active: _hover == null ? t.active : i == _hover,
-                            onTap: t.onTap,
+                            onTap: () => context.go(t.dest.to),
                           ),
                       ],
                     ),
@@ -359,7 +341,7 @@ class _TabBarState extends State<_TabBar> with TickerProviderStateMixin {
                   child: NxPressable(
                     onTap: widget.onExpand,
                     scale: .9,
-                    child: Center(child: Icon(items[active].icon, size: 22, color: c.acc)),
+                    child: Center(child: Icon(items[active].dest.icon, size: 22, color: c.acc)),
                   ),
                 ),
               ),

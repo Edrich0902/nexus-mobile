@@ -10,7 +10,7 @@ import 'package:nexus_mobile/shell/account_sheet.dart';
 /// Root destinations show the logo; anything deeper shows a back pill
 /// labelled with its section (web NxTopBar on phones).
 bool isRootPath(String path) {
-  if (RegExp(r'^/sports/[a-z-]+$').hasMatch(path)) return true;
+  if (path == Nav.more.to || RegExp(r'^/sports/[a-z-]+$').hasMatch(path)) return true;
   return [...Nav.primary, ...Nav.secondary].any((d) => d.to == path);
 }
 

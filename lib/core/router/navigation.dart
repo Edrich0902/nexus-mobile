@@ -115,7 +115,10 @@ abstract final class Nav {
     keywords: ['account'],
   );
 
-  /// Phone tab bar (plus "More" as the fifth tab).
+  /// Phone-only page listing everything outside the tab bar.
+  static const more = Destination('more', 'More', LucideIcons.sparkles, '/more', SectionKey.home);
+
+  /// Phone tab bar (plus [more] as the fifth tab).
   static const List<Destination> phoneTabs = [home, listening, cellar, f1];
 
   static const List<Destination> primary = [
