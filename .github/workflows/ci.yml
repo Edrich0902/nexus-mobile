@@ -30,7 +30,9 @@ jobs:
       - name: Tests (goldens are recorded on macOS; Linux text rendering differs)
         run: flutter test --exclude-tags golden
 
+  # Slow (full Gradle build), so PRs only run `check`.
   android:
+    if: github.event_name == 'push'
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 30
