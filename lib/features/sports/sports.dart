@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
@@ -5,6 +7,7 @@ import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
+import 'package:nexus_mobile/features/home/home_refresh.dart';
 
 // ── Helpers (web routes/sports/sports.ts) ─────────────────────────────────
 
@@ -111,11 +114,19 @@ final sportOverviewProvider = FutureProvider.autoDispose.family<Json, String>(
 
 Future<void> syncSports(BuildContext context, WidgetRef ref, String sport) async {
   try {
+    final before = ref.read(sportsHomeProvider).value?.str('computed_at');
     await ref.read(apiClientProvider).post('/sports/sync', data: {'type': 'all'});
-    ref
-      ..invalidate(sportOverviewProvider(sport))
-      ..invalidate(sportsHomeProvider);
+    ref.invalidate(sportOverviewProvider(sport));
     if (context.mounted) showNxToast(context, 'Sync queued.');
+    unawaited(
+      pollHomeSurfacesAfterSync(
+        ref,
+        isFresh: () {
+          final at = ref.read(sportsHomeProvider).value?.str('computed_at');
+          return at != null && at != before;
+        },
+      ),
+    );
   } on Object catch (e) {
     if (context.mounted) showApiError(context, e, 'Sync failed.');
   }

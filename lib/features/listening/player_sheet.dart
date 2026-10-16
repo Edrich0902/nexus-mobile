@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -91,13 +92,7 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
                   ],
                 ),
               ),
-              NxIconButton(
-                LucideIcons.heart,
-                tooltip: p.isLiked ? 'Remove from Liked Songs' : 'Save to Liked Songs',
-                color: p.isLiked ? c.acc : null,
-                filled: p.isLiked,
-                onPressed: ctl.toggleLike,
-              ),
+              const LikeButton(),
             ],
           ),
           const SizedBox(height: 10),
@@ -143,7 +138,8 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
               NxIconButton(
                 LucideIcons.shuffle,
                 tooltip: p.shuffle ? 'Shuffle on' : 'Shuffle off',
-                color: p.shuffle ? c.acc : null,
+                active: p.shuffle,
+                color: c.acc,
                 onPressed: () => ctl.setShuffle(!p.shuffle),
               ),
               NxIconButton(
@@ -163,7 +159,9 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
               NxIconButton(
                 p.repeat == 'track' ? LucideIcons.repeat1 : LucideIcons.repeat,
                 tooltip: 'Repeat ${p.repeat}',
-                color: p.repeat == 'off' ? null : c.acc,
+                active: p.repeat != 'off',
+                mode: p.repeat,
+                color: c.acc,
                 onPressed: ctl.cycleRepeat,
               ),
             ],
@@ -210,8 +208,8 @@ class _PlayerPanelState extends ConsumerState<PlayerPanel> {
   }
 }
 
-/// Round play / pause button; the icon cross-fades between states.
-class PlayToggle extends StatelessWidget {
+/// Round play / pause control — momentary action kick, icon cross-fades.
+class PlayToggle extends StatefulWidget {
   const new({required this.playing, required this.onPressed, this.size = 50, this.color, this.iconColor, super.key});
 
   final bool playing;
@@ -221,36 +219,67 @@ class PlayToggle extends StatelessWidget {
   final Color? iconColor;
 
   @override
+  State<PlayToggle> createState() => _PlayToggleState();
+}
+
+class _PlayToggleState extends State<PlayToggle> with SingleTickerProviderStateMixin {
+  late final _tap = AnimationController(vsync: this, duration: NxTapMotion.action);
+
+  @override
+  void dispose() {
+    _tap.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleTap() async {
+    final action = widget.onPressed;
+    if (action == null || _tap.isAnimating) return;
+    if (!reduceMotion(context)) {
+      await HapticFeedback.selectionClick();
+      _tap.forward(from: 0);
+    }
+    action();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.nx;
     return Semantics(
       button: true,
-      label: playing ? 'Pause' : 'Play',
+      label: widget.playing ? 'Pause' : 'Play',
       excludeSemantics: true,
       child: IgnorePointer(
-        ignoring: onPressed == null,
-        child: NxPressable(
-          onTap: () => onPressed?.call(),
-          scale: .92,
-          child: AnimatedOpacity(
-            duration: NxTiming.fast,
-            opacity: onPressed == null ? .55 : 1,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(color: color ?? c.ink, shape: BoxShape.circle),
-              alignment: Alignment.center,
-              child: AnimatedSwitcher(
-                duration: NxTiming.fast,
-                transitionBuilder: (child, a) => ScaleTransition(
-                  scale: Tween<double>(begin: .6, end: 1).animate(a),
-                  child: FadeTransition(opacity: a, child: child),
-                ),
-                child: Icon(
-                  playing ? LucideIcons.pause : LucideIcons.play,
-                  key: ValueKey(playing),
-                  size: size * .42,
-                  color: iconColor ?? c.amb,
+        ignoring: widget.onPressed == null,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _handleTap,
+          child: AnimatedBuilder(
+            animation: _tap,
+            builder: (context, child) {
+              final t = _tap.value;
+              final playing = _tap.isAnimating || (t > 0 && t < 1);
+              return Transform.scale(scale: playing ? NxTapMotion.actionScale(t) : 1, child: child);
+            },
+            child: AnimatedOpacity(
+              duration: NxTiming.fast,
+              opacity: widget.onPressed == null ? .55 : 1,
+              child: Container(
+                width: widget.size,
+                height: widget.size,
+                decoration: BoxDecoration(color: widget.color ?? c.ink, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: AnimatedSwitcher(
+                  duration: NxTiming.fast,
+                  transitionBuilder: (child, a) => ScaleTransition(
+                    scale: Tween<double>(begin: .6, end: 1).animate(a),
+                    child: FadeTransition(opacity: a, child: child),
+                  ),
+                  child: Icon(
+                    widget.playing ? LucideIcons.pause : LucideIcons.play,
+                    key: ValueKey(widget.playing),
+                    size: widget.size * .42,
+                    color: widget.iconColor ?? c.amb,
+                  ),
                 ),
               ),
             ),
@@ -318,7 +347,6 @@ class TrackRow extends ConsumerWidget {
     final c = context.nx;
     final uri = track.str('uri');
     final playing = ref.watch(playerProvider.select((p) => p.uri)) == uri && uri != null;
-    final liked = ref.watch(playerProvider.select((p) => uri != null && (p.liked[uri] ?? false)));
     final art = track.str('album_image_url') ?? track.at('album.images.0.url') as String?;
     final artists = track.list('artists').map((a) => a.text('name')).where((s) => s.isNotEmpty).join(', ');
     final ctl = ref.read(playerProvider.notifier);
@@ -364,7 +392,7 @@ class TrackRow extends ConsumerWidget {
                 ],
               ),
             ),
-            if (liked) Icon(LucideIcons.heart, size: 14, color: c.acc),
+            if (uri != null) LikeButton(uri: uri, size: 36),
             ?trailing,
             NxIconButton(
               LucideIcons.ellipsis,
@@ -409,7 +437,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Json track) {
           ),
           NxListRow(
             label: liked ? 'Remove from Liked Songs' : 'Save to Liked Songs',
-            icon: LucideIcons.heart,
+            icon: liked ? Icons.favorite_rounded : LucideIcons.heart,
             onTap: () {
               close();
               ctl.toggleLike(uri);

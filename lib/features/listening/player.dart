@@ -112,6 +112,10 @@ class PlayerController extends Notifier<PlayerState> {
   final _likedCheckedAt = <String, DateTime>{};
   final _likedInFlight = <String>{};
 
+  /// Optimistic shuffle / repeat until a poll confirms (Spotify lags briefly).
+  bool? _expectShuffle;
+  String? _expectRepeat;
+
   /// Surfaces player errors to the shell's toast host.
   final errors = StreamController<String>.broadcast();
 
@@ -166,6 +170,8 @@ class PlayerController extends Notifier<PlayerState> {
     _timer?.cancel();
     _timer = null;
     _likedCheckedAt.clear();
+    _expectShuffle = null;
+    _expectRepeat = null;
     if (state.playback != null) state = state.copyWith(clearPlayback: true);
   }
 
@@ -182,7 +188,7 @@ class PlayerController extends Notifier<PlayerState> {
     try {
       final p = await _api.player();
       final prevUri = state.uri;
-      state = state.copyWith(playback: p, syncedAt: DateTime.now());
+      state = state.copyWith(playback: _applyPlaybackExpectations(p), syncedAt: DateTime.now());
       if (_interval != _pollMs) {
         _interval = _pollMs;
         _restartTimer();
@@ -199,6 +205,35 @@ class PlayerController extends Notifier<PlayerState> {
     } finally {
       _inFlight = false;
     }
+  }
+
+  /// Keep local shuffle/repeat when Spotify's player payload is still stale.
+  Json? _applyPlaybackExpectations(Json? p) {
+    if (p == null) return null;
+    final out = Map<String, dynamic>.from(p);
+    final shuffle = _expectShuffle;
+    if (shuffle != null) {
+      if (out['shuffle_state'] == shuffle) {
+        _expectShuffle = null;
+      } else {
+        out['shuffle_state'] = shuffle;
+      }
+    }
+    final repeat = _expectRepeat;
+    if (repeat != null) {
+      if (out['repeat_state'] == repeat) {
+        _expectRepeat = null;
+      } else {
+        out['repeat_state'] = repeat;
+      }
+    }
+    return out;
+  }
+
+  void _patchPlayback(Map<String, dynamic> patch) {
+    final cur = state.playback;
+    if (cur == null) return;
+    state = state.copyWith(playback: {...cur, ...patch});
   }
 
   Future<void> _heartbeat() async {
@@ -306,14 +341,33 @@ class PlayerController extends Notifier<PlayerState> {
   Future<bool> volume(double pct) =>
       _control(() => _api.volume(pct.round().clamp(0, 100), state.deviceId), 'Unable to set volume');
   Future<bool> transfer(String deviceId) => _control(() => _api.transfer(deviceId), 'Unable to transfer playback');
-  Future<bool> setShuffle(bool on) => _control(() => _api.shuffle(on, state.deviceId), 'Unable to update shuffle');
-  Future<bool> cycleRepeat() {
-    final next = switch (state.repeat) {
+  Future<bool> setShuffle(bool on) async {
+    final prev = state.shuffle;
+    _expectShuffle = on;
+    _patchPlayback({'shuffle_state': on});
+    final ok = await _control(() => _api.shuffle(on, state.deviceId), 'Unable to update shuffle');
+    if (!ok) {
+      _expectShuffle = null;
+      _patchPlayback({'shuffle_state': prev});
+    }
+    return ok;
+  }
+
+  Future<bool> cycleRepeat() async {
+    final prev = state.repeat;
+    final next = switch (prev) {
       'off' => 'context',
       'context' => 'track',
       _ => 'off',
     };
-    return _control(() => _api.repeat(next, state.deviceId), 'Unable to update repeat');
+    _expectRepeat = next;
+    _patchPlayback({'repeat_state': next});
+    final ok = await _control(() => _api.repeat(next, state.deviceId), 'Unable to update repeat');
+    if (!ok) {
+      _expectRepeat = null;
+      _patchPlayback({'repeat_state': prev});
+    }
+    return ok;
   }
 
   Future<bool> toggleLike([String? uri]) async {

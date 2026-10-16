@@ -11,6 +11,7 @@ import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
+import 'package:nexus_mobile/design/widgets/nx_glass.dart';
 import 'package:nexus_mobile/design/widgets/nx_layout.dart';
 import 'package:nexus_mobile/design/widgets/nx_motion.dart';
 
@@ -84,7 +85,7 @@ class NxErrorState extends StatelessWidget {
       icon: e.isOffline ? LucideIcons.wifiOff : LucideIcons.circleAlert,
       title: e.isOffline ? "You're offline" : (e.isNotFound ? 'Not found' : 'Something went wrong'),
       body: e.message,
-      actionLabel: onRetry == null ? null : 'Try again',
+      actionLabel: onRetry == null ? null : (e.suggestsSync ? 'Sync and try again' : 'Try again'),
       onAction: onRetry,
       compact: compact,
     );
@@ -365,17 +366,8 @@ class _ToastViewState extends State<_ToastView> with SingleTickerProviderStateMi
     final enter = CurvedAnimation(parent: _c, curve: Curves.easeOutBack, reverseCurve: NxTiming.exit);
     final fade = CurvedAnimation(parent: _c, curve: Curves.easeOut, reverseCurve: NxTiming.exit);
 
-    final card = Container(
+    final body = Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-      decoration: BoxDecoration(
-        color: c.overlay,
-        borderRadius: BorderRadius.circular(NxRadius.lg),
-        border: Border.all(color: widget.error ? NexusColors.bad.withValues(alpha: .4) : c.lineStrong),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 6, offset: const Offset(0, 2)),
-          BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 30, offset: const Offset(0, 14)),
-        ],
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -429,6 +421,10 @@ class _ToastViewState extends State<_ToastView> with SingleTickerProviderStateMi
             ),
         ],
       ),
+    );
+    final card = Theme(
+      data: Theme.of(context).copyWith(extensions: [c]),
+      child: NxGlass(radius: NxRadius.lg + 4, thick: true, child: body),
     );
 
     return Positioned(

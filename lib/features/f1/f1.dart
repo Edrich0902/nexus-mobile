@@ -8,6 +8,7 @@ import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/api/providers.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
+import 'package:nexus_mobile/features/home/home_refresh.dart';
 
 // ── Helpers (web routes/f1/f1.ts) ──────────────────────────────────────────
 
@@ -235,8 +236,18 @@ class F1Api {
 
 Future<void> syncF1(BuildContext context, WidgetRef ref) async {
   try {
+    final before = ref.read(f1HomeProvider).value?.str('computed_at');
     await ref.read(f1ApiProvider).sync();
     if (context.mounted) showNxToast(context, 'Sync queued.');
+    unawaited(
+      pollHomeSurfacesAfterSync(
+        ref,
+        isFresh: () {
+          final at = ref.read(f1HomeProvider).value?.str('computed_at');
+          return at != null && at != before;
+        },
+      ),
+    );
   } on Object catch (e) {
     if (context.mounted) showApiError(context, e, 'Sync failed.');
   }

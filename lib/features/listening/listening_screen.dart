@@ -347,12 +347,15 @@ class _StageControls extends ConsumerWidget {
           ] else if (track != null)
             NxButton('Play again', icon: LucideIcons.play, onPressed: busy ? null : () => ctl.playUri(track)),
           const Spacer(),
-          if (track != null)
+          if (track != null) ...[
+            LikeButton(uri: track),
+            const SizedBox(width: 2),
             NxIconButton(
               LucideIcons.plus,
               tooltip: 'Add to playlist',
               onPressed: () => showAddToPlaylistSheet(context, track),
             ),
+          ],
           NxIconButton(LucideIcons.listMusic, tooltip: 'Queue', onPressed: () => showQueueSheet(context)),
           NxIconButton(
             LucideIcons.ellipsis,

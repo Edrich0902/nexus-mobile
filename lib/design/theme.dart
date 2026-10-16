@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/design/ambient_palette.dart';
 import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
+import 'package:nexus_mobile/design/widgets/nx_glass.dart';
 
 ThemeData buildNexusTheme(Ambient ambient) {
   final c = NexusColors.from(ambient);
@@ -45,26 +46,16 @@ ThemeData buildNexusTheme(Ambient ambient) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: c.tint,
+      fillColor: nxWellFill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       hintStyle: TextStyle(color: c.ink3),
       labelStyle: TextStyle(color: c.ink3),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(NxRadius.md),
-        borderSide: BorderSide(color: c.line),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(NxRadius.md),
-        borderSide: BorderSide(color: c.line),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(NxRadius.md),
-        borderSide: BorderSide(color: c.acc, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(NxRadius.md),
-        borderSide: const BorderSide(color: NexusColors.bad),
-      ),
+      border: NxGlassBorder.recessed(c),
+      enabledBorder: NxGlassBorder.recessed(c),
+      disabledBorder: NxGlassBorder.recessed(c),
+      focusedBorder: NxGlassBorder.solid(c.acc),
+      errorBorder: NxGlassBorder.solid(NexusColors.bad, width: 1),
+      focusedErrorBorder: NxGlassBorder.solid(NexusColors.bad),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(color: c.acc, linearTrackColor: c.line),
     snackBarTheme: SnackBarThemeData(
@@ -76,11 +67,19 @@ ThemeData buildNexusTheme(Ambient ambient) {
         side: BorderSide(color: c.line),
       ),
     ),
-    bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: c.overlay,
-      modalBackgroundColor: c.overlay,
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Colors.transparent,
+      modalBackgroundColor: Colors.transparent,
+      elevation: 0,
+      modalElevation: 0,
       showDragHandle: false,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(NxRadius.xxl))),
+    ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: c.overlay,
+      surfaceTintColor: Colors.transparent,
+      shape: NxGlassBorder.raised(c, radius: NxRadius.xxl + 6),
+      headerForegroundColor: c.ink,
+      todayBorder: BorderSide(color: c.acc),
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? c.amb : c.ink3),

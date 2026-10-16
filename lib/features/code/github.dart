@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/api/api_client.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/integrations/oauth_connect.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
+import 'package:nexus_mobile/features/home/activity.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
+import 'package:nexus_mobile/features/home/home_refresh.dart';
 
 // ── Helpers (web routes/github/code.ts) ───────────────────────────────────
 
@@ -246,9 +250,21 @@ Future<void> connectGithub(BuildContext context, WidgetRef ref) async {
 
 Future<void> syncGithub(BuildContext context, WidgetRef ref) async {
   try {
+    final beforeActivity = activityHeadFingerprint(ref.read(activityProvider).value);
+    final beforePulse = ref.read(githubPulseProvider).value;
     final message = await ref.read(githubApiProvider).sync();
     refreshGithub(ref);
     if (context.mounted) showNxToast(context, message);
+    unawaited(
+      pollHomeSurfacesAfterSync(
+        ref,
+        isFresh: () {
+          final pulse = ref.read(githubPulseProvider).value;
+          final activity = activityHeadFingerprint(ref.read(activityProvider).value);
+          return (pulse != null && pulse != beforePulse) || (activity != null && activity != beforeActivity);
+        },
+      ),
+    );
   } on Object catch (e) {
     if (context.mounted) showApiError(context, e, 'Could not start a sync.');
   }

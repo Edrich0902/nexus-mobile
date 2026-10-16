@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
@@ -6,9 +7,11 @@ import 'package:nexus_mobile/design/colors.dart';
 import 'package:nexus_mobile/design/tokens.g.dart';
 import 'package:nexus_mobile/design/typography.dart';
 import 'package:nexus_mobile/design/widgets/nx_controls.dart';
+import 'package:nexus_mobile/design/widgets/nx_glass.dart';
 
-/// Bottom sheet in the Nexus style: overlay surface, grab handle, optional
-/// title row. Used for the More drawer, account, search and editors.
+/// Bottom sheet in the Nexus style: a floating pane of thick glass inset
+/// from the screen edges, with a grab handle and optional title row. Used
+/// for account, search, pickers and editors.
 Future<T?> showNxSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
@@ -22,7 +25,9 @@ Future<T?> showNxSheet<T>(
     useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
-    barrierColor: Colors.black.withValues(alpha: .5),
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    barrierColor: Colors.black.withValues(alpha: .34),
     sheetAnimationStyle: const AnimationStyle(
       duration: Duration(milliseconds: 380),
       reverseDuration: Duration(milliseconds: 220),
@@ -30,8 +35,10 @@ Future<T?> showNxSheet<T>(
     builder: (context) {
       final c = context.nx;
       final mq = MediaQuery.of(context);
+      final keyboard = mq.viewInsets.bottom;
+      final lift = keyboard > 0 ? keyboard + _gap : _gap;
       final content = Padding(
-        padding: EdgeInsets.fromLTRB(18, 10, 18, 18 + mq.viewInsets.bottom + mq.padding.bottom),
+        padding: EdgeInsets.fromLTRB(18, 10, 18, keyboard > 0 ? 18 : math.max(mq.padding.bottom - _gap, 0) + 14),
         child: Column(
           mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,7 +48,7 @@ Future<T?> showNxSheet<T>(
                 width: 38,
                 height: 5,
                 margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(color: c.tint2, borderRadius: BorderRadius.circular(3)),
+                decoration: BoxDecoration(color: c.ink4, borderRadius: BorderRadius.circular(3)),
               ),
             ),
             if (title != null)
@@ -56,17 +63,22 @@ Future<T?> showNxSheet<T>(
           ],
         ),
       );
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: c.overlay,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(NxRadius.xxl)),
-          border: Border(top: BorderSide(color: c.line)),
+      return Padding(
+        padding: EdgeInsets.fromLTRB(_gap, 0, _gap, lift),
+        child: NxGlass(
+          radius: _radius,
+          thick: true,
+          child: expand ? SizedBox(height: math.max(mq.size.height * .88 - lift, 0), child: content) : content,
         ),
-        child: expand ? SizedBox(height: mq.size.height * .88, child: content) : content,
       );
     },
   );
 }
+
+/// Sheets float this far off the screen edges, with corners that follow
+/// the device's.
+const _gap = 8.0;
+const _radius = 34.0;
 
 /// Confirm a destructive action (web PrimeVue `confirm.require` popover):
 /// resolves true only when the danger button is pressed.
