@@ -13,6 +13,7 @@ import 'package:nexus_mobile/design/palettes.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/activity.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
+import 'package:nexus_mobile/features/home/home_refresh.dart';
 import 'package:nexus_mobile/features/home/hub_api.dart';
 import 'package:nexus_mobile/features/listening/live_position.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
@@ -37,32 +38,30 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  Timer? _nowTimer;
-  Timer? _activityTimer;
+  Timer? _surfacesTimer;
   late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _nowTimer = foregroundPoll(const Duration(seconds: 30), () => ref.invalidate(nowProvider));
-    _activityTimer = foregroundPoll(const Duration(minutes: 2), () => ref.invalidate(activityProvider));
-    _lifecycle = AppLifecycleListener(onResume: () => ref.invalidate(nowProvider));
+    // Stage + stream + module pulses stay in step with background sync jobs.
+    _surfacesTimer = foregroundPoll(const Duration(seconds: 30), () => invalidateHomeSurfaces(ref));
+    _lifecycle = AppLifecycleListener(onResume: () => invalidateHomeSurfaces(ref));
   }
 
   @override
   void dispose() {
-    _nowTimer?.cancel();
-    _activityTimer?.cancel();
+    _surfacesTimer?.cancel();
     _lifecycle.dispose();
     super.dispose();
   }
 
   Future<void> _refresh() async {
-    refreshHomeModules(ref);
-    ref
-      ..invalidate(activityProvider)
-      ..invalidate(nowProvider);
-    await ref.read(nowProvider.future);
+    invalidateHomeSurfaces(ref);
+    await Future.wait<void>([
+      ref.read(nowProvider.future).then<void>((_) {}),
+      ref.read(activityProvider.future).then<void>((_) {}),
+    ]);
   }
 
   @override

@@ -9,7 +9,9 @@ import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/integrations/oauth_connect.dart';
 import 'package:nexus_mobile/design/profile.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
+import 'package:nexus_mobile/features/home/activity.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
+import 'package:nexus_mobile/features/home/home_refresh.dart';
 import 'package:nexus_mobile/features/listening/player.dart';
 import 'package:nexus_mobile/features/listening/player_sheet.dart';
 import 'package:nexus_mobile/features/listening/spotify_api.dart';
@@ -145,8 +147,21 @@ Future<void> connectSpotify(BuildContext context, WidgetRef ref) async {
 
 Future<void> syncSpotify(BuildContext context, WidgetRef ref) async {
   try {
+    final beforeTaste = ref.read(spotifyTasteProvider).value?.str('computed_at');
+    final beforeActivity = activityHeadFingerprint(ref.read(activityProvider).value);
     final message = await ref.read(spotifyApiProvider).sync();
+    refreshListening(ref);
     if (context.mounted) showNxToast(context, message);
+    unawaited(
+      pollHomeSurfacesAfterSync(
+        ref,
+        isFresh: () {
+          final taste = ref.read(spotifyTasteProvider).value?.str('computed_at');
+          final activity = activityHeadFingerprint(ref.read(activityProvider).value);
+          return (taste != null && taste != beforeTaste) || (activity != null && activity != beforeActivity);
+        },
+      ),
+    );
   } on Object catch (e) {
     if (context.mounted) showApiError(context, e, 'Could not start a sync.');
   }

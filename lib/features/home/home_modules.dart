@@ -109,7 +109,12 @@ final homeModulesProvider = Provider<HomeModules>((ref) {
   final counts = dash.obj('counts') ?? const {};
   final reading = library.list('reading').firstOrNull;
   final meeting = f1.obj('next_meeting');
-  final fixture = sports.list('upcoming').firstOrNull;
+  // Skip kickoffs already in the past (stale snapshot until API rebuilds).
+  final now = DateTime.now();
+  final fixture = sports.list('upcoming').where((e) {
+    final at = e.date('starts_at');
+    return at == null || !at.isBefore(now);
+  }).firstOrNull;
 
   final fields = <HomeField>[
     if (spotifyConnected && taste != null)

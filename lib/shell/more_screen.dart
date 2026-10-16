@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nexus_mobile/core/router/navigation.dart';
 import 'package:nexus_mobile/design/widgets/widgets.dart';
 import 'package:nexus_mobile/features/home/home_modules.dart';
+import 'package:nexus_mobile/features/home/home_refresh.dart';
 
 /// The More tab: every destination outside the tab bar. Sections with a
 /// live pulse (shared with Home) get a field; the rest are quick links.
@@ -27,7 +28,7 @@ class MoreScreen extends ConsumerWidget {
     final loading = modules.loading && live.every((f) => f.value == '0' || f.value == '—');
 
     return NxPage(
-      onRefresh: () async => refreshHomeModules(ref),
+      onRefresh: () async => invalidateHomeSurfaces(ref),
       children: [
         const NxStage(
           eyebrow: 'Everything else',
