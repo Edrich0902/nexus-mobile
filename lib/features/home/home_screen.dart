@@ -97,6 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   )
                 : NxBento(
                     key: const ValueKey('fields'),
+                    layout: BentoLayout.masonry,
                     children: [
                       for (final f in modules.fields)
                         NxField(
@@ -111,6 +112,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           sub: f.sub,
                           span: f.span,
                           minHeight: f.span == 2 ? 170 : 120,
+                          imageUrl: f.imageUrl,
+                          imageMedia: f.imageMedia,
+                          contentKey: f.slideId,
                           onTap: () => context.go(f.to),
                         ),
                     ],

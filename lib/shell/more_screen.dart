@@ -7,7 +7,8 @@ import 'package:nexus_mobile/features/home/home_modules.dart';
 import 'package:nexus_mobile/features/home/home_refresh.dart';
 
 /// The More tab: every destination outside the tab bar. Sections with a
-/// live pulse (shared with Home) get a field; the rest are quick links.
+/// live pulse (shared with Home) get a static glance field; the rest are
+/// quick links. No cycling, no media faces — equal-height grid only.
 class MoreScreen extends ConsumerWidget {
   const new({super.key});
 
@@ -16,7 +17,7 @@ class MoreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final modules = ref.watch(homeModulesProvider);
+    final modules = ref.watch(moreModulesProvider);
     final fields = {for (final f in modules.fields) f.key: f};
     final dests = [...Nav.primary, ...Nav.secondary].where((d) => !Nav.phoneTabs.contains(d)).toList();
     final live = [

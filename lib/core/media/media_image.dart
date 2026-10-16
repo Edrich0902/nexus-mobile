@@ -3,11 +3,17 @@ import 'package:nexus_mobile/core/api/json.dart';
 /// Compact image payload (`media` on records): Cloudinary public id + the
 /// stored secure URL as a fallback.
 class MediaImage {
-  const new({this.id, this.publicId, this.url});
+  const new({this.id, this.publicId, this.url, this.width, this.height});
 
   static MediaImage? fromJson(Json? json) {
     if (json == null) return null;
-    final m = MediaImage(id: json.integer('id'), publicId: json.str('public_id'), url: json.str('url'));
+    final m = MediaImage(
+      id: json.integer('id'),
+      publicId: json.str('public_id'),
+      url: json.str('url'),
+      width: json.integer('width'),
+      height: json.integer('height'),
+    );
     return m.isEmpty ? null : m;
   }
 
@@ -25,6 +31,16 @@ class MediaImage {
   final int? id;
   final String? publicId;
   final String? url;
+  final int? width;
+  final int? height;
 
   bool get isEmpty => (publicId == null || publicId!.isEmpty) && (url == null || url!.isEmpty);
+
+  /// Natural width÷height when the API sent dimensions.
+  double? get aspectRatio {
+    final w = width;
+    final h = height;
+    if (w == null || h == null || w <= 0 || h <= 0) return null;
+    return w / h;
+  }
 }

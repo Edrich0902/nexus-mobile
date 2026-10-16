@@ -173,17 +173,52 @@ class NxPanel extends StatelessWidget {
   }
 }
 
-/// Two-column bento grid for [NxField]s (`span` 1 or 2), matching the phone
-/// layout of web NxBento.
+enum BentoLayout {
+  /// Equal-height row packing (more screen, F1, collections, …).
+  grid,
+
+  /// Dense columns — home board only; tall media never leaves a hole beside it.
+  masonry,
+}
+
+/// Two-column bento for [NxField]s (`span` 1 or 2). Defaults to [BentoLayout.grid];
+/// pass [BentoLayout.masonry] on home so cards pack into the shorter column.
 class NxBento extends StatelessWidget {
-  const new({required this.children, this.gap = 10, this.top = 22, super.key});
+  const new({
+    required this.children,
+    this.gap = 10,
+    this.top = 22,
+    this.layout = BentoLayout.grid,
+    super.key,
+  });
 
   final List<Widget> children;
   final double gap;
   final double top;
+  final BentoLayout layout;
+
+  static double _estimate(Widget child) {
+    if (child is NxField) {
+      final hasImage =
+          (child.imageUrl != null && child.imageUrl!.isNotEmpty) ||
+          (child.imageMedia != null && !child.imageMedia!.isEmpty);
+      if (hasImage) {
+        final ar = child.imageMedia?.aspectRatio;
+        final cover = ar != null && ar > 0 ? 160 / ar : 220.0;
+        return cover + 88;
+      }
+      return child.minHeight;
+    }
+    if (child is BentoItem && child.span >= 2) return 170;
+    return 120;
+  }
 
   @override
   Widget build(BuildContext context) {
+    return layout == BentoLayout.masonry ? _buildMasonry() : _buildGrid();
+  }
+
+  Widget _buildGrid() {
     final rows = <List<Widget>>[];
     var current = <Widget>[];
     var used = 0;
@@ -226,6 +261,87 @@ class NxBento extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildMasonry() {
+    final segments = <Widget>[];
+    var left = <Widget>[];
+    var right = <Widget>[];
+    var leftH = 0.0;
+    var rightH = 0.0;
+    var tile = 0;
+
+    void flushColumns() {
+      if (left.isEmpty && right.isEmpty) return;
+      segments.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  for (var i = 0; i < left.length; i++) ...[
+                    if (i > 0) SizedBox(height: gap),
+                    left[i],
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                children: [
+                  for (var i = 0; i < right.length; i++) ...[
+                    if (i > 0) SizedBox(height: gap),
+                    right[i],
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+      left = [];
+      right = [];
+      leftH = 0;
+      rightH = 0;
+    }
+
+    for (final raw in children) {
+      final span = raw is BentoItem ? raw.span.clamp(1, 2) : 1;
+      final child = NxRise(index: tile++, distance: 14, child: raw);
+      if (span >= 2) {
+        flushColumns();
+        segments.add(child);
+        continue;
+      }
+      final est = _estimate(raw);
+      if (leftH <= rightH) {
+        left.add(child);
+        leftH += est + (left.length > 1 ? gap : 0);
+      } else {
+        right.add(child);
+        rightH += est + (right.length > 1 ? gap : 0);
+      }
+    }
+    flushColumns();
+
+    return Padding(
+      padding: EdgeInsets.only(top: top),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 580),
+        curve: Curves.easeInOutCubic,
+        alignment: Alignment.topCenter,
+        child: Column(
+          children: [
+            for (var i = 0; i < segments.length; i++) ...[
+              if (i > 0) SizedBox(height: gap),
+              segments[i],
+            ],
+          ],
+        ),
       ),
     );
   }
