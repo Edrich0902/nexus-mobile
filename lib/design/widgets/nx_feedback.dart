@@ -85,7 +85,7 @@ class NxErrorState extends StatelessWidget {
       icon: e.isOffline ? LucideIcons.wifiOff : LucideIcons.circleAlert,
       title: e.isOffline ? "You're offline" : (e.isNotFound ? 'Not found' : 'Something went wrong'),
       body: e.message,
-      actionLabel: onRetry == null ? null : 'Try again',
+      actionLabel: onRetry == null ? null : (e.suggestsSync ? 'Sync and try again' : 'Try again'),
       onAction: onRetry,
       compact: compact,
     );

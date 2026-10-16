@@ -59,8 +59,8 @@ class _NxPressableState extends State<NxPressable> {
         excludeSemantics: widget.semanticLabel != null,
         child: AnimatedScale(
           scale: _down && !reduce ? widget.scale : 1,
-          duration: reduce ? Duration.zero : Duration(milliseconds: _down ? 110 : 320),
-          curve: _down ? Curves.easeOut : Curves.easeOutBack,
+          duration: reduce ? Duration.zero : (_down ? NxTiming.fast : NxSpring.duration),
+          curve: _down ? Curves.easeOut : NxSpring.curve,
           child: widget.child,
         ),
       ),
@@ -290,74 +290,212 @@ class NxButton extends StatelessWidget {
   }
 }
 
-class NxIconButton extends StatelessWidget {
+/// Glass icon control — the mobile standard for round icon buttons.
+///
+/// Pass [active] for toggles (like, shuffle, repeat): turning on plays the
+/// shared press→bloom→settle clip and keeps an accent glass fill while on.
+/// Omit [active] for momentary actions (skip, queue, search): each tap plays
+/// a shorter press→kick→settle clip with no fill.
+class NxIconButton extends StatefulWidget {
   const new(
     this.icon, {
     required this.onPressed,
     required this.tooltip,
-    this.filled = false,
+    this.active,
+    this.mode,
     this.size = 40,
     this.color,
     this.badge = false,
+    this.filled = false,
     super.key,
   });
 
   final IconData icon;
   final VoidCallback? onPressed;
   final String tooltip;
-  final bool filled;
+
+  /// Non-null means this is a toggle. Accent glass while true; bloom clip
+  /// when it becomes true.
+  final bool? active;
+
+  /// When set, a change while [active] stays true re-plays the activate bloom
+  /// (e.g. Spotify repeat cycling `context` → `track`).
+  final Object? mode;
+
   final double size;
+
+  /// Accent used when [active] is true (defaults to the ambient accent).
   final Color? color;
+
   final bool badge;
+
+  /// Legacy: force a filled glass look when not using [active]. Prefer [active].
+  final bool filled;
+
+  @override
+  State<NxIconButton> createState() => _NxIconButtonState();
+}
+
+class _NxIconButtonState extends State<NxIconButton> with SingleTickerProviderStateMixin {
+  late final _tap = AnimationController(vsync: this)..addStatusListener(_onTapStatus);
+
+  /// True while an activate bloom we started is still running.
+  bool _blooming = false;
+
+  bool get _toggle => widget.active != null;
+  bool get _on => widget.active ?? false;
+
+  void _onTapStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _blooming && mounted) {
+      setState(() => _blooming = false);
+    }
+  }
+
+  void _playBloom() {
+    if (reduceMotion(context)) return;
+    _blooming = true;
+    _tap.duration = NxTapMotion.activate;
+    _tap.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _tap
+      ..removeStatusListener(_onTapStatus)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(NxIconButton old) {
+    super.didUpdateWidget(old);
+    if (!_toggle) return;
+    // Parent flipped us off while a bloom was mid-flight.
+    if (old.active == true && widget.active == false) {
+      _blooming = false;
+      _tap.value = 0;
+      return;
+    }
+    // Still on, but mode changed (repeat context → track).
+    if (old.active == true && widget.active == true && widget.mode != null && widget.mode != old.mode && !_blooming) {
+      unawaited(HapticFeedback.lightImpact());
+      _playBloom();
+    }
+  }
+
+  Future<void> _handleTap() async {
+    final action = widget.onPressed;
+    if (action == null || _tap.isAnimating) return;
+
+    final turningOn = _toggle && widget.active == false;
+    final reduce = reduceMotion(context);
+
+    if (!reduce) {
+      if (turningOn) {
+        await HapticFeedback.lightImpact();
+        _playBloom();
+      } else if (!_toggle) {
+        _tap.duration = NxTapMotion.action;
+        await HapticFeedback.selectionClick();
+        _tap.forward(from: 0);
+      } else {
+        // Already on — may turn off (shuffle) or cycle mode (repeat). Soft
+        // click now; [mode] change while still active re-blooms above.
+        await HapticFeedback.selectionClick();
+      }
+    }
+
+    action();
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
-    final btn = Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: filled
-          ? ShapeDecoration(
-              color: c.tint2,
-              shape: NxGlassBorder.raised(c, radius: NxRadius.pill),
-            )
-          : null,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          AnimatedSwitcher(
-            duration: NxTiming.base,
-            switchInCurve: Curves.easeOutBack,
-            transitionBuilder: (child, a) => FadeTransition(
-              opacity: a,
-              child: ScaleTransition(scale: Tween<double>(begin: .6, end: 1).animate(a), child: child),
-            ),
-            child: Icon(icon, key: ValueKey(icon), size: size * .48, color: color ?? (filled ? c.ink : c.ink2)),
-          ),
-          if (badge)
-            Positioned(
-              right: -2,
-              top: -2,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(color: c.acc, shape: BoxShape.circle),
-              ),
-            ),
-        ],
-      ),
-    );
+    final tone = widget.color ?? c.acc;
+    final enabled = widget.onPressed != null;
+
     return Semantics(
       button: true,
-      label: tooltip,
+      enabled: enabled,
+      selected: widget.active,
+      label: widget.tooltip,
       excludeSemantics: true,
       child: Tooltip(
-        message: tooltip,
+        message: widget.tooltip,
         triggerMode: TooltipTriggerMode.longPress,
-        child: onPressed == null
-            ? Opacity(opacity: .4, child: btn)
-            : NxPressable(onTap: onPressed!, scale: .9, child: btn),
+        child: Opacity(
+          opacity: enabled ? 1 : .4,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: enabled ? _handleTap : null,
+            child: AnimatedBuilder(
+              animation: _tap,
+              builder: (context, _) {
+                final t = _tap.value;
+                final playing = _tap.isAnimating || (t > 0 && t < 1);
+
+                late final double fill;
+                late final double scale;
+                if (_toggle) {
+                  if (_blooming) {
+                    fill = NxTapMotion.activateFill(t);
+                    scale = NxTapMotion.activateScale(t);
+                  } else {
+                    fill = _on || widget.filled ? 1.0 : 0.0;
+                    scale = 1.0;
+                  }
+                } else {
+                  fill = widget.filled ? 1.0 : 0.0;
+                  scale = playing ? NxTapMotion.actionScale(t) : 1.0;
+                }
+
+                // Toggles (and colored fills) use the accent glass; bare
+                // `filled: true` keeps the neutral glass capsule.
+                final accented = _toggle || widget.color != null;
+                final iconColor = accented
+                    ? (Color.lerp(c.ink2, tone, fill) ?? tone)
+                    : (widget.filled ? c.ink : c.ink2);
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    width: widget.size,
+                    height: widget.size,
+                    alignment: Alignment.center,
+                    decoration: fill <= 0
+                        ? null
+                        : ShapeDecoration(
+                            color: accented ? tone.withValues(alpha: .22 * fill) : c.tint2,
+                            shape: accented
+                                ? NxGlassBorder.solid(
+                                    tone.withValues(alpha: .55 * fill),
+                                    radius: NxRadius.pill,
+                                    width: 1,
+                                  )
+                                : NxGlassBorder.raised(c, radius: NxRadius.pill),
+                          ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(widget.icon, size: widget.size * .48, color: iconColor),
+                        if (widget.badge)
+                          Positioned(
+                            right: -2,
+                            top: -2,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(color: c.acc, shape: BoxShape.circle),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -31,9 +31,9 @@ class PhoneBar extends ConsumerWidget {
   static const side = 14.0;
   static const gap = 10.0;
 
-  /// Overshoots a touch before settling, like the system glass.
-  static const spring = Cubic(.32, 1.25, .45, 1);
-  static const springDuration = Duration(milliseconds: 550);
+  /// Overshoots a touch before settling — shared [NxSpring] glass motion.
+  static const spring = NxSpring.curve;
+  static const springDuration = NxSpring.duration;
 
   /// Sits in the home-indicator zone rather than above it; never flush
   /// with the screen edge on devices without one.
@@ -367,28 +367,7 @@ class _Tab extends StatefulWidget {
   State<_Tab> createState() => _TabState();
 }
 
-class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
-  late final AnimationController _pop = AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
-  late final Animation<double> _scale = TweenSequence<double>([
-    TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1.18).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
-    TweenSequenceItem(
-      tween: Tween<double>(begin: 1.18, end: 1).chain(CurveTween(curve: Curves.elasticOut)),
-      weight: 65,
-    ),
-  ]).animate(_pop);
-
-  @override
-  void didUpdateWidget(_Tab old) {
-    super.didUpdateWidget(old);
-    if (widget.active && !old.active && !reduceMotion(context)) _pop.forward(from: 0);
-  }
-
-  @override
-  void dispose() {
-    _pop.dispose();
-    super.dispose();
-  }
-
+class _TabState extends State<_Tab> {
   @override
   Widget build(BuildContext context) {
     final c = context.nx;
@@ -406,8 +385,8 @@ class _TabState extends State<_Tab> with SingleTickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ScaleTransition(
-                scale: _scale,
+              NxPop(
+                active: active,
                 child: TweenAnimationBuilder<Color?>(
                   tween: ColorTween(end: color),
                   duration: NxTiming.base,

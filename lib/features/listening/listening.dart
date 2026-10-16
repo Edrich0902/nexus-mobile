@@ -219,6 +219,31 @@ class SpotifyMark extends StatelessWidget {
   );
 }
 
+/// Like / unlike a Spotify track — [NxIconButton] toggle with art accent.
+class LikeButton extends ConsumerWidget {
+  const new({this.uri, this.size = 40, super.key});
+
+  /// Track to like; null means the one currently playing.
+  final String? uri;
+  final double size;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.nx;
+    final current = ref.watch(playerProvider.select((p) => p.uri));
+    final target = uri ?? current;
+    final liked = ref.watch(playerProvider.select((p) => target != null && (p.liked[target] ?? false)));
+    return NxIconButton(
+      liked ? Icons.favorite_rounded : LucideIcons.heart,
+      tooltip: liked ? 'Remove from Liked Songs' : 'Save to Liked Songs',
+      size: size,
+      active: liked,
+      color: c.acc,
+      onPressed: target == null ? null : () => ref.read(playerProvider.notifier).toggleLike(target),
+    );
+  }
+}
+
 /// Track rows with liked-state refreshed for whatever is on screen.
 class TrackList extends ConsumerStatefulWidget {
   const new({

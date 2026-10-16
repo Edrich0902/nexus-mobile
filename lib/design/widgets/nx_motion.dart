@@ -21,7 +21,104 @@ abstract final class NxTiming {
   static const settle = Curves.easeOutCubic;
 }
 
+/// Shared spring used by the tab lens, presses and active-state pops so
+/// every control feels like the same glass.
+abstract final class NxSpring {
+  static const curve = Cubic(.32, 1.25, .45, 1);
+  static const duration = Duration(milliseconds: 550);
+  static const pop = Duration(milliseconds: 420);
+}
+
+/// Mobile control tap timelines. Every icon button uses these so toggles and
+/// momentary actions feel like the same glass family as the tab bar.
+///
+/// - [activate]: turning something on — press in → bloom → spring settle
+/// - [action]: a one-shot (skip, queue, search) — press in → short kick settle
+abstract final class NxTapMotion {
+  static const activate = Duration(milliseconds: 560);
+  static const action = Duration(milliseconds: 420);
+
+  static double _lerp(double a, double b, double t) => a + (b - a) * t;
+
+  /// Scale for an activate clip (like, shuffle on, repeat on).
+  static double activateScale(double t) {
+    if (t < .22) return _lerp(1, .86, Curves.easeOut.transform(t / .22));
+    if (t < .5) return _lerp(.86, 1.38, Curves.easeOut.transform((t - .22) / .28));
+    return _lerp(1.38, 1, Curves.elasticOut.transform((t - .5) / .5));
+  }
+
+  /// Accent fill / solid-icon progress during [activateScale].
+  static double activateFill(double t) {
+    if (t < .18) return 0;
+    if (t < .48) return Curves.easeOut.transform((t - .18) / .3);
+    return 1;
+  }
+
+  /// Scale for a momentary action clip (skip, open sheet, camera…).
+  static double actionScale(double t) {
+    if (t < .28) return _lerp(1, .88, Curves.easeOut.transform(t / .28));
+    if (t < .55) return _lerp(.88, 1.16, Curves.easeOut.transform((t - .28) / .27));
+    return _lerp(1.16, 1, NxSpring.curve.transform((t - .55) / .45));
+  }
+}
+
 bool reduceMotion(BuildContext context) => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+/// A quick overshoot pop (1 → 1.28 → 1), the same beat as an active tab.
+/// Plays when [active] becomes true, or when [trigger] changes to a new
+/// non-null value.
+class NxPop extends StatefulWidget {
+  const new({required this.child, this.active, this.trigger, this.peak = 1.28, super.key});
+
+  final Widget child;
+  final bool? active;
+  final Object? trigger;
+
+  /// How far the pop overshoots before settling.
+  final double peak;
+
+  @override
+  State<NxPop> createState() => _NxPopState();
+}
+
+class _NxPopState extends State<NxPop> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: NxSpring.pop);
+  late final Animation<double> _scale = _buildScale(widget.peak);
+
+  Animation<double> _buildScale(double peak) => TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween<double>(begin: 1, end: peak).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 35,
+    ),
+    TweenSequenceItem(
+      tween: Tween<double>(begin: peak, end: 1).chain(CurveTween(curve: Curves.elasticOut)),
+      weight: 65,
+    ),
+  ]).animate(_c);
+
+  void _play() {
+    if (!reduceMotion(context)) _c.forward(from: 0);
+  }
+
+  @override
+  void didUpdateWidget(NxPop old) {
+    super.didUpdateWidget(old);
+    if (widget.active == true && old.active != true) {
+      _play();
+    } else if (widget.trigger != null && widget.trigger != old.trigger) {
+      _play();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ScaleTransition(scale: _scale, child: widget.child);
+}
 
 /// Rise-in entrance (web `.nx-rise`): fades up from [distance] px. Plays once
 /// when mounted; pass [index] to stagger siblings. With [animate] false it

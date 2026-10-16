@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nexus_mobile/core/api/api_error.dart';
 import 'package:nexus_mobile/core/api/json.dart';
 import 'package:nexus_mobile/core/format.dart';
 import 'package:nexus_mobile/core/native/open_external.dart';
@@ -94,6 +95,14 @@ class _GithubPullScreenState extends ConsumerState<GithubPullScreen> {
     }, done: 'Review submitted.');
   }
 
+  Future<void> _retry() async {
+    final err = ref.read(githubPullProvider(_key)).error;
+    if (err != null && ApiError.from(err).suggestsSync) {
+      await syncGithub(context, ref);
+    }
+    ref.invalidate(githubPullProvider(_key));
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(githubPullProvider(_key));
@@ -102,13 +111,7 @@ class _GithubPullScreenState extends ConsumerState<GithubPullScreen> {
         ref.invalidate(githubPullProvider(_key));
         await ref.read(githubPullProvider(_key).future);
       },
-      children: [
-        NxAsync(
-          value: async,
-          onRetry: () => ref.invalidate(githubPullProvider(_key)),
-          data: (d) => _body(context, d.pull, d.files, d.reviews),
-        ),
-      ],
+      children: [NxAsync(value: async, onRetry: _retry, data: (d) => _body(context, d.pull, d.files, d.reviews))],
     );
   }
 
